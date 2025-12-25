@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add / Edit Container | Ajwad</title>
+    <script src="auth.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <h2 class="logo">Ajwad</h2>
+    <ul>
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="add-container.html">Add Container</a></li>
+        <li><a href="containers.html">Containers</a></li>
+        <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
+    </ul>
+</nav>
+
+<div class="page">
+
+    <header class="header">
+        <h1 id="formTitle">Add New Container</h1>
+        <p id="formSubtitle">Enter container-wise cost & selling details</p>
+    </header>
+
+    <section class="containers">
+
+        <!-- ⭐ form now submits to saveContainer() -->
+        <form onsubmit="saveContainer(event)">
+            <table>
+                <tr>
+                    <td>Container Date</td>
+                    <td><input type="date" id="containerDate" required></td>
+                </tr>
+                <tr>
+                    <td>Container Number</td>
+                    <td><input type="text" id="containerNo" placeholder="AJW-004" required></td>
+                </tr>
+                <tr>
+                    <td>Item</td>
+                    <td><input type="text" id="item" placeholder="Onions" required></td>
+                </tr>
+                <tr>
+                    <td>Purchase Cost (India)</td>
+                    <td><input type="number" id="purchase" placeholder="50000"></td>
+                </tr>
+                <tr>
+                    <td>Shipping & Logistics</td>
+                    <td><input type="number" id="shipping" placeholder="15000"></td>
+                </tr>
+                <tr>
+                    <td>Customs & Other Expenses</td>
+                    <td><input type="number" id="customs" placeholder="8000"></td>
+                </tr>
+                <tr>
+                    <td>Selling Amount</td>
+                    <td><input type="number" id="selling" placeholder="90000"></td>
+                </tr>
+            </table>
+
+            <br>
+            <button id="saveBtn" type="submit">Save Container</button>
+            <div id="resultBox"></div>
+        </form>
+    </section>
+
+</div>
+
+<script>
+/* ===================================================
+   EDIT MODE — AUTO-FILL FIELDS IF USER CLICKED "EDIT"
+=================================================== */
+
+let editIndex = localStorage.getItem("editIndex");
+let editData = localStorage.getItem("editData");
+
+if (editData) {
+
+    editData = JSON.parse(editData);
+
+    // Change page text
+    document.getElementById("formTitle").innerText = "Edit Container";
+    document.getElementById("formSubtitle").innerText = "Update container details";
+    document.getElementById("saveBtn").innerText = "Update Container";
+
+    // Fill form fields
+    document.getElementById("containerDate").value = editData.date || "";
+    document.getElementById("containerNo").value = editData.containerNo || "";
+    document.getElementById("item").value = editData.item || "";
+    document.getElementById("purchase").value = editData.purchase || 0;
+    document.getElementById("shipping").value = editData.shipping || 0;
+    document.getElementById("customs").value = editData.customs || 0;
+    document.getElementById("selling").value = editData.selling || 0;
+}
+
+/* ===================================================
+   SAVE / UPDATE CONTAINER
+   (works for BOTH add + edit mode)
+=================================================== */
+
+function saveContainer(event) {
+
+    event.preventDefault();
+
+    const containerNo = document.getElementById("containerNo").value;
+    const item = document.getElementById("item").value;
+    const date = document.getElementById("containerDate").value;
+
+    const purchase = Number(document.getElementById("purchase").value || 0);
+    const shipping = Number(document.getElementById("shipping").value || 0);
+    const customs = Number(document.getElementById("customs").value || 0);
+    const selling = Number(document.getElementById("selling").value || 0);
+
+    const totalCost = purchase + shipping + customs;
+    const profitLoss = selling - totalCost;
+
+    const payload = {
+        containerNo,
+        item,
+        date,
+        purchase,
+        shipping,
+        customs,
+        selling,
+        profitLoss
+    };
+
+    let containers = JSON.parse(localStorage.getItem("containers")) || [];
+
+    // ⭐ UPDATE existing record (edit mode)
+    if (editIndex !== null) {
+        containers[Number(editIndex)] = payload;
+
+        // clear edit memory
+        localStorage.removeItem("editIndex");
+        localStorage.removeItem("editData");
+
+        document.getElementById("resultBox").innerHTML =
+            "✔️ Container updated successfully!";
+        document.getElementById("resultBox").style.color = "green";
+
+    } else {
+        // ⭐ ADD new container
+        containers.push(payload);
+
+        document.getElementById("resultBox").innerHTML =
+            (profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") +
+            Math.abs(profitLoss);
+
+        document.getElementById("resultBox").style.color =
+            profitLoss >= 0 ? "green" : "red";
+
+        event.target.reset();
+    }
+
+    localStorage.setItem("containers", JSON.stringify(containers));
+}
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>

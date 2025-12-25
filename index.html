@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajwad Container Management</title>
+    <script src="auth.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <h2 class="logo">Ajwad</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="add-container.html">Add Container</a></li>
+            <li><a href="containers.html">Containers</a></li>
+            <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
+        </ul>
+    </nav>
+
+    <!-- 👇 PAGE WRAPPER START -->
+    <div class="page">
+
+        <!-- Header -->
+        <header class="header">
+            <h1>Ajwad Container Management</h1>
+            <p>Private Business Dashboard</p>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <section class="stats">
+            <div class="card">
+                <h2>Total Containers</h2>
+                <p id="totalContainers">0</p>
+            </div>
+
+            <div class="card">
+                <h2>Total Investment</h2>
+                <p id="totalInvestment">AED 0</p>
+            </div>
+
+            <div class="card">
+                <h2>Total Profit / Loss</h2>
+                <p id="netProfit">AED 0</p>
+            </div>
+        </section>
+
+        <!-- Recent Containers -->
+        <section class="containers">
+            <h2>Recent Containers</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Container No</th>
+                        <th>Item</th>
+                        <th>Date</th>
+                        <th>Profit / Loss</th>
+                    </tr>
+                </thead>
+                <tbody id="containerTable">
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+    <!-- 👆 PAGE WRAPPER END -->
+
+    <script src="app.js"></script>
+
+    <!-- DELETE CONFIRM POPUP -->
+    <div id="confirmPopup" class="popup-overlay" style="display:none;">
+        <div class="popup-box">
+    
+            <h3>Delete Container?</h3>
+            <p>This action cannot be undone.</p>
+
+            <div class="popup-actions">
+                <button id="confirmDeleteBtn" class="confirm-btn">Yes, Delete</button>
+                <button id="cancelDeleteBtn" class="cancel-btn">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
