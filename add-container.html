@@ -171,25 +171,26 @@ if (editData) {
 /* ==========================================
    SAVE / UPDATE CONTAINER
 ========================================== */
-
 function saveContainer(event) {
 
     event.preventDefault();
 
-    const containerNo = containerNo.value;
-    const item = item.value;
-    const date = containerDate.value;
+    // Read form field values safely
+    const containerNo = document.getElementById("containerNo").value.trim();
+    const item = document.getElementById("item").value.trim();
+    const date = document.getElementById("containerDate").value;
 
-    const bags = Number(bagsEl.value || 0);
-    const weightPerBag = Number(weightEl.value || 0);
-    const totalWeight = Number(totalWeightEl.value || 0);
-    const costPerBag = Number(costPerBagEl.value || 0);
+    const bags = Number(document.getElementById("totalBags").value || 0);
+    const weightPerBag = Number(document.getElementById("weightPerBag").value || 0);
+    const totalWeight = Number(document.getElementById("totalWeight").value || 0);
+    const costPerBag = Number(document.getElementById("costPerBag").value || 0);
 
-    const purchase = Number(purchaseEl.value || 0);
-    const shipping = Number(shippingEl.value || 0);
-    const customs = Number(customsEl.value || 0);
-    const selling = Number(selling.value || 0);
+    const purchase = Number(document.getElementById("purchaseCost").value || 0);
+    const shipping = Number(document.getElementById("shippingCost").value || 0);
+    const customs = Number(document.getElementById("customsCost").value || 0);
+    const selling = Number(document.getElementById("sellingAmount").value || 0);
 
+    // Calculations
     const totalCost = purchase + shipping + customs;
     const profitLoss = selling - totalCost;
 
@@ -211,6 +212,7 @@ function saveContainer(event) {
 
     let containers = JSON.parse(localStorage.getItem("containers")) || [];
 
+    // UPDATE MODE
     if (editIndex !== null) {
 
         containers[Number(editIndex)] = payload;
@@ -222,7 +224,7 @@ function saveContainer(event) {
         resultBox.style.color = "green";
 
     } else {
-
+        // ADD MODE
         containers.push(payload);
 
         resultBox.innerHTML =
