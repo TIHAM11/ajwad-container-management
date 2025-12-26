@@ -92,7 +92,7 @@
 
             <br>
             <button id="saveBtn" type="submit">Save Container</button>
-            <div id="resultBox"></div>
+            <div id="resultBox" style="margin-top:10px;font-weight:bold;"></div>
         </form>
     </section>
 
@@ -103,11 +103,18 @@
    AUTO CALC — TOTAL WEIGHT + COST PER BAG
 ========================================== */
 
-function recalcValues() {
+const bagsEl = document.getElementById("bags");
+const weightEl = document.getElementById("weightPerBag");
+const totalWeightEl = document.getElementById("totalWeight");
+const costPerBagEl = document.getElementById("costPerBag");
 
+const purchaseEl = document.getElementById("purchase");
+const shippingEl = document.getElementById("shipping");
+const customsEl = document.getElementById("customs");
+
+function recalcValues() {
     const bags = Number(bagsEl.value || 0);
     const weightPerBag = Number(weightEl.value || 0);
-
     const purchase = Number(purchaseEl.value || 0);
     const shipping = Number(shippingEl.value || 0);
     const customs = Number(customsEl.value || 0);
@@ -121,28 +128,18 @@ function recalcValues() {
     costPerBagEl.value = costPerBag;
 }
 
-const bagsEl = document.getElementById("bags");
-const weightEl = document.getElementById("weightPerBag");
-const totalWeightEl = document.getElementById("totalWeight");
-const costPerBagEl = document.getElementById("costPerBag");
-
-const purchaseEl = document.getElementById("purchase");
-const shippingEl = document.getElementById("shipping");
-const customsEl = document.getElementById("customs");
-
-["bags","weightPerBag","purchase","shipping","customs"]
-.forEach(id => document.getElementById(id).addEventListener("input", recalcValues));
+["bags","weightPerBag","purchase","shipping","customs"].forEach(id => {
+    document.getElementById(id).addEventListener("input", recalcValues);
+});
 
 
 /* ==========================================
    EDIT MODE — AUTO FILL EXISTING DATA
 ========================================== */
-
 let editIndex = localStorage.getItem("editIndex");
 let editData = localStorage.getItem("editData");
 
 if (editData) {
-
     editData = JSON.parse(editData);
 
     document.getElementById("formTitle").innerText = "Edit Container";
@@ -163,7 +160,6 @@ if (editData) {
     customsEl.value = editData.customs || 0;
     document.getElementById("selling").value = editData.selling || 0;
 
-    // ensure values update instantly
     recalcValues();
 }
 
@@ -172,25 +168,22 @@ if (editData) {
    SAVE / UPDATE CONTAINER
 ========================================== */
 function saveContainer(event) {
-
     event.preventDefault();
 
-    // Read form field values safely
     const containerNo = document.getElementById("containerNo").value;
     const item = document.getElementById("item").value;
     const date = document.getElementById("containerDate").value;
 
-    const bags = Number(document.getElementById("totalBags").value || 0);
+    const bags = Number(document.getElementById("bags").value || 0);
     const weightPerBag = Number(document.getElementById("weightPerBag").value || 0);
     const totalWeight = Number(document.getElementById("totalWeight").value || 0);
     const costPerBag = Number(document.getElementById("costPerBag").value || 0);
 
-    const purchase = Number(document.getElementById("purchaseCost").value || 0);
-    const shipping = Number(document.getElementById("shippingCost").value || 0);
-    const customs = Number(document.getElementById("customsCost").value || 0);
-    const selling = Number(document.getElementById("sellingAmount").value || 0);
+    const purchase = Number(document.getElementById("purchase").value || 0);
+    const shipping = Number(document.getElementById("shipping").value || 0);
+    const customs = Number(document.getElementById("customs").value || 0);
+    const selling = Number(document.getElementById("selling").value || 0);
 
-    // Calculations
     const totalCost = purchase + shipping + customs;
     const profitLoss = selling - totalCost;
 
@@ -211,26 +204,20 @@ function saveContainer(event) {
     };
 
     let containers = JSON.parse(localStorage.getItem("containers")) || [];
+    const resultBox = document.getElementById("resultBox");
 
-    // UPDATE MODE
     if (editIndex !== null) {
-
         containers[Number(editIndex)] = payload;
-
         localStorage.removeItem("editIndex");
         localStorage.removeItem("editData");
 
         resultBox.innerHTML = "✔️ Container updated successfully!";
         resultBox.style.color = "green";
-
     } else {
-        // ADD MODE
         containers.push(payload);
 
-        resultBox.innerHTML =
-            (profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ")
-            + Math.abs(profitLoss);
-
+        resultBox.innerHTML = 
+            (profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") + Math.abs(profitLoss);
         resultBox.style.color = profitLoss >= 0 ? "green" : "red";
 
         event.target.reset();
