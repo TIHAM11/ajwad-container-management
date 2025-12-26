@@ -252,7 +252,7 @@ if (cancelDeleteBtn) {
         deleteId = null;
         confirmPopup.style.display = "none";
     });
-});
+};
 
 
 /* ==========================
