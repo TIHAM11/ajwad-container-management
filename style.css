@@ -244,3 +244,68 @@ button:hover {
 .logout-btn:hover {
   background:#b91c1c;
 }
+/* ==========================
+   📱 MOBILE RESPONSIVE DESIGN
+========================== */
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 10px;
+  }
+
+  .page {
+    padding: 15px;
+  }
+
+  /* Navbar stacks vertically */
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .navbar ul {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .navbar ul li {
+    display: inline-block;
+  }
+
+  .logout-btn {
+    padding: 6px 10px;
+  }
+
+  /* Header text scales */
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .header p {
+    font-size: 12px;
+  }
+
+  /* Stats cards stack nicely */
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  /* Table becomes scrollable horizontally */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th, td {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
