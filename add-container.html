@@ -176,9 +176,9 @@ function saveContainer(event) {
     event.preventDefault();
 
     // Read form field values safely
-    const containerNo = document.getElementById("containerNo").value.trim();
-    const item = document.getElementById("item").value.trim();
-    const date = document.getElementById("containerDate").value;
+    const containerNo = document.getElementById("containerNo").value;
+const item = document.getElementById("item").value;
+const date = document.getElementById("containerDate").value;
 
     const bags = Number(document.getElementById("totalBags").value || 0);
     const weightPerBag = Number(document.getElementById("weightPerBag").value || 0);
