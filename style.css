@@ -251,11 +251,12 @@ button:hover {
 @media (max-width: 768px) {
 
   body {
-    padding: 10px;
+    padding: 0;
+    margin: 0;
   }
 
   .page {
-    padding: 15px;
+    padding: 12px;
   }
 
   /* Navbar stacks vertically */
@@ -288,7 +289,7 @@ button:hover {
     font-size: 12px;
   }
 
-  /* Stats cards stack nicely */
+  /* Dashboard stats -> single column */
   .stats {
     grid-template-columns: 1fr;
   }
@@ -297,14 +298,81 @@ button:hover {
     padding: 15px;
   }
 
-  /* Table becomes scrollable horizontally */
+  /* -------------------------
+     LOGIN PAGE (MOBILE FIX)
+  --------------------------*/
+
+  .login-wrapper,
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-box,
+  .login-card,
+  .auth-card {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .login-box h1,
+  .login-card h1 {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .login-box p,
+  .login-card p {
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .login-box input,
+  .login-card input,
+  .login-card button,
+  .login-box button {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  /* -------------------------
+     FORMS (ADD CONTAINER)
+  --------------------------*/
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 10px 12px;
+  }
+
+  /* -------------------------
+     TABLES (CONTAINERS PAGE)
+  --------------------------*/
+
+  .table-container,
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
   table {
+    width: 100%;
+    min-width: 600px;
     display: block;
     overflow-x: auto;
     white-space: nowrap;
   }
 
-  th, td {
+  th,
+  td {
     padding: 10px;
     font-size: 13px;
   }
