@@ -4,23 +4,41 @@ function calculateProfit(event) {
     const containerNo = document.getElementById("containerNo").value;
     const item = document.getElementById("item").value;
     const containerDate = document.getElementById("containerDate").value;
+
     const purchase = Number(document.getElementById("purchase").value);
     const shipping = Number(document.getElementById("shipping").value);
     const customs = Number(document.getElementById("customs").value);
     const selling = Number(document.getElementById("selling").value);
 
+    // NEW FIELDS
+    const bagsCount = Number(document.getElementById("bagsCount").value || 0);
+    const weightPerBag = Number(document.getElementById("weightPerBag").value || 0);
+
+    // CALCULATIONS
     const totalCost = purchase + shipping + customs;
     const profitLoss = selling - totalCost;
+
+    const totalWeight = bagsCount * weightPerBag;     // NEW
+    const costPerBag = bagsCount > 0 ? (totalCost / bagsCount) : 0; // NEW
 
     const containerData = {
         containerNo,
         item,
         date: containerDate,
+
         purchase,
         shipping,
         customs,
         selling,
-        profitLoss
+
+        profitLoss,
+        totalCost,
+
+        // NEW DATA SAVED
+        bagsCount,
+        weightPerBag,
+        totalWeight,
+        costPerBag
     };
 
     let containers = JSON.parse(localStorage.getItem("containers")) || [];
@@ -48,12 +66,10 @@ function calculateProfit(event) {
    GLOBAL POPUP DELETE SYSTEM
 ========================== */
 
-// Popup elements
 const confirmPopup = document.getElementById("confirmPopup");
 const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
-// Store row index to delete
 let deleteId = null;
 
 
@@ -69,8 +85,10 @@ function updateDashboardStats() {
 
     let totalInvestment = 0;
     let totalSelling = 0;
+    let totalWeight = 0;   // NEW
 
     containers.forEach(c => {
+
         const cost =
             Number(c.purchase || 0) +
             Number(c.shipping || 0) +
@@ -78,6 +96,7 @@ function updateDashboardStats() {
 
         totalInvestment += cost;
         totalSelling += Number(c.selling || 0);
+        totalWeight += Number(c.totalWeight || 0); // NEW
     });
 
     const netProfit = totalSelling - totalInvestment;
@@ -87,6 +106,11 @@ function updateDashboardStats() {
 
     document.getElementById("netProfit").textContent =
         (netProfit >= 0 ? "+ AED " : "- AED ") + Math.abs(netProfit);
+
+    // OPTIONAL — if you want total weight on dashboard later
+    if (document.getElementById("totalWeightDash")) {
+        document.getElementById("totalWeightDash").textContent = totalWeight + " KG";
+    }
 }
 
 
@@ -134,22 +158,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     containers.forEach((c, index) => {
 
-        const totalCost =
-            Number(c.purchase || 0) +
-            Number(c.shipping || 0) +
-            Number(c.customs || 0);
-
         const row = document.createElement("tr");
-
-        // row color highlighting
         row.className = c.profitLoss >= 0 ? "row-profit" : "row-loss";
 
         row.innerHTML = `
             <td>${c.containerNo}</td>
             <td>${c.item}</td>
             <td>${formatDate(c.date)}</td>
-            <td>AED ${totalCost}</td>
-            <td>AED ${c.selling}</td>
+
+            <td>${c.bagsCount || 0}</td>
+            <td>${c.weightPerBag || 0} KG</td>
+            <td>${c.totalWeight || 0} KG</td>
+
+            <td>AED ${c.totalCost || 0}</td>
+            <td>AED ${c.selling || 0}</td>
+
+            <td>AED ${c.costPerBag?.toFixed(2) || 0}</td>
 
             <td class="${c.profitLoss >= 0 ? 'profit-text' : 'loss-text'}">
                 ${c.profitLoss >= 0 ? '+ AED ' : '- AED '} ${Math.abs(c.profitLoss)}
@@ -183,32 +207,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const rows = table.getElementsByTagName("tr");
 
         for (let i = 0; i < rows.length; i++) {
-
             const rowText = rows[i].innerText.toLowerCase();
-
-            rows[i].style.display =
-                rowText.includes(filterValue) ? "" : "none";
+            rows[i].style.display = rowText.includes(filterValue) ? "" : "none";
         }
     });
 });
 
 
 /* ==========================
-   DELETE SYSTEM — POPUP FLOW
+   DELETE POPUP
 ========================== */
 
 function showDeletePopup(index) {
 
-    deleteId = index; // store index
+    deleteId = index;
 
-    // If popup exists (index.html)
     if (confirmPopup) {
         confirmPopup.style.display = "flex";
         return;
     }
 
-    // Fallback confirm (containers.html)
-    const ok = confirm("Are you sure you want to delete this container?");
+    const ok = confirm("Delete this container?");
 
     if (ok) {
         let containers = JSON.parse(localStorage.getItem("containers")) || [];
@@ -218,34 +237,22 @@ function showDeletePopup(index) {
     }
 }
 
-
-// Confirm delete button (popup pages only)
 if (confirmDeleteBtn) {
-
     confirmDeleteBtn.addEventListener("click", () => {
-
         let containers = JSON.parse(localStorage.getItem("containers")) || [];
-
         containers.splice(deleteId, 1);
-
         localStorage.setItem("containers", JSON.stringify(containers));
-
         confirmPopup.style.display = "none";
-
         location.reload();
     });
 }
 
-
-// Cancel popup
 if (cancelDeleteBtn) {
-
     cancelDeleteBtn.addEventListener("click", () => {
-
         deleteId = null;
         confirmPopup.style.display = "none";
     });
-}
+});
 
 
 /* ==========================

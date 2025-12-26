@@ -28,8 +28,11 @@
             <p>Private Business Dashboard</p>
         </header>
 
-        <!-- Dashboard Stats -->
+        <!-- =========================
+             DASHBOARD SUMMARY CARDS
+        ========================== -->
         <section class="stats">
+
             <div class="card">
                 <h2>Total Containers</h2>
                 <p id="totalContainers">0</p>
@@ -44,9 +47,27 @@
                 <h2>Total Profit / Loss</h2>
                 <p id="netProfit">AED 0</p>
             </div>
+
+            <div class="card">
+                <h2>Total Bags</h2>
+                <p id="totalBags">0</p>
+            </div>
+
+            <div class="card">
+                <h2>Total Container Weight</h2>
+                <p id="totalWeight">0 KG</p>
+            </div>
+
+            <div class="card">
+                <h2>Average Cost Per Bag</h2>
+                <p id="avgCostPerBag">AED 0</p>
+            </div>
+
         </section>
 
-        <!-- Recent Containers -->
+        <!-- =========================
+             RECENT CONTAINERS TABLE
+        ========================== -->
         <section class="containers">
             <h2>Recent Containers</h2>
 
@@ -56,6 +77,10 @@
                         <th>Container No</th>
                         <th>Item</th>
                         <th>Date</th>
+                        <th>Bags</th>
+                        <th>Weight / Bag</th>
+                        <th>Total Weight</th>
+                        <th>Cost / Bag</th>
                         <th>Profit / Loss</th>
                     </tr>
                 </thead>
@@ -72,7 +97,7 @@
     <!-- DELETE CONFIRM POPUP -->
     <div id="confirmPopup" class="popup-overlay" style="display:none;">
         <div class="popup-box">
-    
+
             <h3>Delete Container?</h3>
             <p>This action cannot be undone.</p>
 

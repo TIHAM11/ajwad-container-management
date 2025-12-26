@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <nav class="navbar">
+<nav class="navbar">
     <h2 class="logo">Ajwad</h2>
     <ul>
         <li><a href="index.html">Dashboard</a></li>
@@ -17,36 +17,52 @@
         <li><a href="containers.html">Containers</a></li>
         <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
     </ul>
-    </nav>
+</nav>
+
 <div class="page">
+
     <header class="header">
         <h1>All Containers</h1>
-        <p>Complete container-wise profit & loss</p>
+        <p>Complete container-wise profit, cost & weight details</p>
     </header>
 
     <section class="containers">
+
         <input 
-                type="text" 
-                id="searchBox" 
-                placeholder="Search container, item, date, profit..."
-                style="width: 100%; padding: 10px; margin-bottom: 12px;"
+            type="text"
+            id="searchBox"
+            placeholder="Search container, item, date, bags, cost, profit..."
+            style="width: 100%; padding: 10px; margin-bottom: 12px;"
         >
+
         <table>
             <thead>
                 <tr>
                     <th>Container No</th>
                     <th>Item</th>
                     <th>Date</th>
+
+                    <!-- NEW FIELDS -->
+                    <th>No. of Bags</th>
+                    <th>Weight / Bag</th>
+                    <th>Total Weight</th>
+
                     <th>Total Cost</th>
                     <th>Selling</th>
+
+                    <!-- NEW FIELD -->
+                    <th>Cost / Bag</th>
+
                     <th>Profit / Loss</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody id="allContainersTable">
-            </tbody>
+
+            <tbody id="allContainersTable"></tbody>
         </table>
+
     </section>
+
 </div>
 
 <script src="app.js"></script>
@@ -54,7 +70,6 @@
 <!-- DELETE CONFIRM POPUP -->
 <div id="confirmPopup" class="popup-overlay" style="display:none;">
     <div class="popup-box">
-    
         <h3>Delete Container?</h3>
         <p>This action cannot be undone.</p>
 
@@ -62,7 +77,6 @@
             <button id="confirmDeleteBtn" class="confirm-btn">Yes, Delete</button>
             <button id="cancelDeleteBtn" class="cancel-btn">Cancel</button>
         </div>
-
     </div>
 </div>
 
