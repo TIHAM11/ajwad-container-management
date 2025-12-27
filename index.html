@@ -1,113 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ajwad Container Management</title>
-    <script src="auth.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ajwad Container Management</title>
+
+  <script src="auth.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-    <nav class="navbar">
-        <h2 class="logo">Ajwad</h2>
-        <ul>
-            <li><a href="index.html">Dashboard</a></li>
-            <li><a href="add-container.html">Add Container</a></li>
-            <li><a href="containers.html">Containers</a></li>
-            <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
-        </ul>
-    </nav>
+<nav class="navbar">
+  <h2 class="logo">Ajwad</h2>
+  <ul>
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="add-container.html">Add Container</a></li>
+    <li><a href="containers.html">Containers</a></li>
+    <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
+  </ul>
+</nav>
 
-    <!-- 👇 PAGE WRAPPER START -->
-    <div class="page">
+<div class="page">
 
-        <!-- Header -->
-        <header class="header">
-            <h1>Ajwad Container Management</h1>
-            <p>Private Business Dashboard</p>
-        </header>
+  <header class="header">
+    <h1>Ajwad Container Management</h1>
+    <p>Private Business Dashboard</p>
+  </header>
 
-        <!-- =========================
-             DASHBOARD SUMMARY CARDS
-        ========================== -->
-        <section class="stats">
+  <!-- DASHBOARD CARDS -->
+  <section class="stats">
 
-            <div class="card">
-                <h2>Total Containers</h2>
-                <p id="totalContainers">0</p>
-            </div>
-
-            <div class="card">
-                <h2>Total Investment</h2>
-                <p id="totalInvestment">AED 0</p>
-            </div>
-
-            <div class="card">
-                <h2>Total Profit / Loss</h2>
-                <p id="netProfit">AED 0</p>
-            </div>
-
-            <div class="card">
-                <h2>Total Bags</h2>
-                <p id="totalBags">0</p>
-            </div>
-
-            <div class="card">
-                <h2>Total Container Weight</h2>
-                <p id="totalWeight">0 KG</p>
-            </div>
-
-            <div class="card">
-                <h2>Average Cost Per Bag</h2>
-                <p id="avgCostPerBag">AED 0</p>
-            </div>
-
-        </section>
-
-        <!-- =========================
-             RECENT CONTAINERS TABLE
-        ========================== -->
-        <section class="containers">
-            <h2>Recent Containers</h2>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Container No</th>
-                        <th>Item</th>
-                        <th>Date</th>
-                        <th>Bags</th>
-                        <th>Weight / Bag</th>
-                        <th>Total Weight</th>
-                        <th>Cost / Bag</th>
-                        <th>Profit / Loss</th>
-                    </tr>
-                </thead>
-                <tbody id="containerTable">
-                </tbody>
-            </table>
-        </section>
-
+    <div class="card">
+      <h2>Total Containers</h2>
+      <p id="totalContainers">0</p>
     </div>
-    <!-- 👆 PAGE WRAPPER END -->
 
-    <script src="app.js"></script>
-
-    <!-- DELETE CONFIRM POPUP -->
-    <div id="confirmPopup" class="popup-overlay" style="display:none;">
-        <div class="popup-box">
-
-            <h3>Delete Container?</h3>
-            <p>This action cannot be undone.</p>
-
-            <div class="popup-actions">
-                <button id="confirmDeleteBtn" class="confirm-btn">Yes, Delete</button>
-                <button id="cancelDeleteBtn" class="cancel-btn">Cancel</button>
-            </div>
-
-        </div>
+    <div class="card">
+      <h2>Total Investment</h2>
+      <p id="totalInvestment">AED 0</p>
     </div>
+
+    <div class="card">
+      <h2>Total Profit / Loss</h2>
+      <p id="netProfit">AED 0</p>
+    </div>
+
+    <div class="card">
+      <h2>Total Bags</h2>
+      <p id="totalBags">0</p>
+    </div>
+
+    <div class="card">
+      <h2>Total Container Weight</h2>
+      <p id="totalWeight">0 KG</p>
+    </div>
+
+    <div class="card">
+      <h2>Average Cost Per Bag</h2>
+      <p id="avgCostPerBag">AED 0</p>
+    </div>
+
+  </section>
+
+  <!-- RECENT CONTAINERS -->
+  <section class="containers">
+    <h2>Recent Containers</h2>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Container No</th>
+        <th>Item</th>
+        <th>Date</th>
+        <th>Bags</th>
+        <th>Weight / Bag</th>
+        <th>Total Weight</th>
+        <th>Cost / Bag</th>
+        <th>Profit / Loss</th>
+      </tr>
+      </thead>
+
+      <tbody id="containerTable"></tbody>
+    </table>
+  </section>
+
+</div>
+
+<script>
+function getContainers() {
+  return JSON.parse(localStorage.getItem("containers")) || [];
+}
+
+function loadDashboard() {
+
+  const data = getContainers();
+
+  document.getElementById("totalContainers").innerText = data.length;
+
+  let totalInvestment = 0;
+  let totalSelling = 0;
+  let totalBags = 0;
+  let totalWeight = 0;
+
+  const tableBody = document.getElementById("containerTable");
+  tableBody.innerHTML = "";
+
+  data.forEach(c => {
+
+    // 🔹 Read bags (supports all saved versions)
+    const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+
+    // 🔹 Weight handling
+    const weightPerBag =
+      Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
+
+    const totalWeightCalc =
+      c.totalWeight ? Number(c.totalWeight) : bags * weightPerBag;
+
+    // 🔹 Cost & selling
+    const totalCost = Number(c.totalCost ?? c.cost ?? 0);
+    const selling   = Number(c.selling ?? c.totalSelling ?? 0);
+
+    // 🔹 Derived values
+    const costPerBag = bags ? (totalCost / bags) : 0;
+    const profitLoss = selling - totalCost;
+
+    totalInvestment += totalCost;
+    totalSelling   += selling;
+    totalBags      += bags;
+    totalWeight    += totalWeightCalc;
+
+    const plClass = profitLoss >= 0 ? "profit" : "loss";
+    const plSign  = profitLoss >= 0 ? "+" : "-";
+
+    const row = `
+      <tr>
+        <td>${c.containerNo || ""}</td>
+        <td>${c.item || ""}</td>
+        <td>${c.date || ""}</td>
+
+        <td>${bags}</td>
+        <td>${weightPerBag} KG</td>
+        <td>${totalWeightCalc} KG</td>
+
+        <td>AED ${costPerBag.toFixed(2)}</td>
+
+        <td class="${plClass}">
+          ${plSign} AED ${Math.abs(profitLoss)}
+        </td>
+      </tr>
+    `;
+
+    tableBody.insertAdjacentHTML("beforeend", row);
+  });
+
+  // 🔹 Show totals on dashboard
+  document.getElementById("totalInvestment").innerText =
+    `AED ${totalInvestment}`;
+
+  const netProfit = totalSelling - totalInvestment;
+  const profitSign = netProfit >= 0 ? "+" : "-";
+
+  document.getElementById("netProfit").innerText =
+    `${profitSign} AED ${Math.abs(netProfit)}`;
+
+  document.getElementById("totalBags").innerText = totalBags;
+  document.getElementById("totalWeight").innerText = `${totalWeight} KG`;
+
+  const avgCost = totalBags ? (totalInvestment / totalBags) : 0;
+  document.getElementById("avgCostPerBag").innerText =
+    `AED ${avgCost.toFixed(2)}`;
+}
+
+loadDashboard();
+</script>
 
 </body>
 </html>
