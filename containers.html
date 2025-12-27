@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Containers | Ajwad</title>
     <script src="auth.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
 <nav class="navbar">
@@ -28,12 +29,12 @@
 
     <section class="containers">
 
-        <input 
+        <input
             type="text"
             id="searchBox"
             placeholder="Search container, item, date, bags, cost, profit..."
             style="width: 100%; padding: 10px; margin-bottom: 12px;"
-        >
+        />
 
         <table>
             <thead>
@@ -41,18 +42,12 @@
                     <th>Container No</th>
                     <th>Item</th>
                     <th>Date</th>
-
-                    <!-- NEW FIELDS -->
                     <th>No. of Bags</th>
                     <th>Weight / Bag</th>
                     <th>Total Weight</th>
-
                     <th>Total Cost</th>
                     <th>Selling</th>
-
-                    <!-- NEW FIELD -->
                     <th>Cost / Bag</th>
-
                     <th>Profit / Loss</th>
                     <th>Action</th>
                 </tr>
@@ -65,9 +60,90 @@
 
 </div>
 
-<script src="app.js"></script>
+<script>
+const tableBody = document.getElementById("allContainersTable");
+const searchBox  = document.getElementById("searchBox");
 
-<!-- DELETE CONFIRM POPUP -->
+function getContainers() {
+    return JSON.parse(localStorage.getItem("containers")) || [];
+}
+
+function renderTable(list) {
+    tableBody.innerHTML = "";
+
+    list.forEach((c, index) => {
+
+        // 🔹 Read bags safely (supports all previous versions)
+        const bags =
+            Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+
+        // 🔹 Weight handling
+        const weightPerBag =
+            Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
+
+        const totalWeight =
+            c.totalWeight ? Number(c.totalWeight)
+            : bags * weightPerBag;
+
+        // 🔹 Cost & selling
+        const totalCost = Number(c.totalCost ?? c.cost ?? 0);
+        const selling   = Number(c.selling ?? c.totalSelling ?? 0);
+
+        // 🔹 Derived values
+        const costPerBag = bags ? (totalCost / bags) : 0;
+        const profitLoss = selling - totalCost;
+
+        const plClass = profitLoss >= 0 ? "profit" : "loss";
+        const plSign  = profitLoss >= 0 ? "+" : "-";
+
+        const row = `
+        <tr>
+            <td>${c.containerNo || ""}</td>
+            <td>${c.item || ""}</td>
+            <td>${c.date || ""}</td>
+
+            <td>${bags}</td>
+            <td>${weightPerBag} KG</td>
+            <td>${totalWeight} KG</td>
+
+            <td>AED ${totalCost}</td>
+            <td>AED ${selling}</td>
+
+            <td>AED ${costPerBag.toFixed(2)}</td>
+
+            <td class="${plClass}">
+                ${plSign} AED ${Math.abs(profitLoss)}
+            </td>
+
+            <td>
+                <button onclick="editContainer(${index})" class="edit-btn">Edit</button>
+                <button onclick="askDelete(${index})" class="delete-btn">Delete</button>
+            </td>
+        </tr>
+        `;
+
+        tableBody.insertAdjacentHTML("beforeend", row);
+    });
+}
+
+function loadPage() {
+    const data = getContainers();
+    renderTable(data);
+
+    // 🔹 Live search filter
+    searchBox.addEventListener("input", e => {
+        const q = e.target.value.toLowerCase();
+        const filtered = getContainers().filter(c =>
+            JSON.stringify(c).toLowerCase().includes(q)
+        );
+        renderTable(filtered);
+    });
+}
+
+loadPage();
+</script>
+
+<!-- Delete confirmation popup -->
 <div id="confirmPopup" class="popup-overlay" style="display:none;">
     <div class="popup-box">
         <h3>Delete Container?</h3>
