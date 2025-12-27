@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Containers | Ajwad</title>
+
     <script src="auth.js"></script>
     <link rel="stylesheet" href="style.css" />
 </head>
@@ -15,7 +16,7 @@
     <ul>
         <li><a href="index.html">Dashboard</a></li>
         <li><a href="add-container.html">Add Container</a></li>
-        <li><a href="containers.html">Containers</a></li>
+        <li><a href="containers.html" class="active">Containers</a></li>
         <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
     </ul>
 </nav>
@@ -60,8 +61,6 @@
 
 </div>
 
-<script src="app.js"></script>
-
 <script>
 const tableBody = document.getElementById("allContainersTable");
 const searchBox  = document.getElementById("searchBox");
@@ -70,28 +69,23 @@ function getContainers() {
     return JSON.parse(localStorage.getItem("containers")) || [];
 }
 
+/* ---------- RENDER TABLE ---------- */
 function renderTable(list) {
     tableBody.innerHTML = "";
 
     list.forEach((c, index) => {
 
-        // 🔹 Read bags safely (supports all previous versions)
-        const bags =
-            Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+        // Backward-compatible field handling
+        const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+        const weightPerBag = Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
 
-        // 🔹 Weight handling
-        const weightPerBag =
-            Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
-
-        const totalWeight =
-            c.totalWeight ? Number(c.totalWeight)
+        const totalWeight = c.totalWeight
+            ? Number(c.totalWeight)
             : bags * weightPerBag;
 
-        // 🔹 Cost & selling
         const totalCost = Number(c.totalCost ?? c.cost ?? 0);
         const selling   = Number(c.selling ?? c.totalSelling ?? 0);
 
-        // 🔹 Derived values
         const costPerBag = bags ? (totalCost / bags) : 0;
         const profitLoss = selling - totalCost;
 
@@ -128,11 +122,53 @@ function renderTable(list) {
     });
 }
 
+/* ---------- EDIT FUNCTION ---------- */
+function editContainer(index) {
+
+    const containers = getContainers();
+    const data = containers[index];
+
+    // store edit state
+    localStorage.setItem("editIndex", index);
+    localStorage.setItem("editData", JSON.stringify(data));
+
+    // go to add-container page
+    window.location.href = "add-container.html";
+}
+
+/* ---------- DELETE FLOW ---------- */
+
+let deleteIndex = null;
+
+function askDelete(index) {
+    deleteIndex = index;
+    document.getElementById("confirmPopup").style.display = "flex";
+}
+
+function cancelDelete() {
+    deleteIndex = null;
+    document.getElementById("confirmPopup").style.display = "none";
+}
+
+function confirmDelete() {
+
+    const containers = getContainers();
+    containers.splice(deleteIndex, 1);
+
+    localStorage.setItem("containers", JSON.stringify(containers));
+
+    deleteIndex = null;
+    document.getElementById("confirmPopup").style.display = "none";
+
+    renderTable(containers);
+}
+
+/* ---------- LOAD & SEARCH ---------- */
+
 function loadPage() {
     const data = getContainers();
     renderTable(data);
 
-    // 🔹 Live search filter
     searchBox.addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
         const filtered = getContainers().filter(c =>
@@ -152,8 +188,8 @@ loadPage();
         <p>This action cannot be undone.</p>
 
         <div class="popup-actions">
-            <button id="confirmDeleteBtn" class="confirm-btn">Yes, Delete</button>
-            <button id="cancelDeleteBtn" class="cancel-btn">Cancel</button>
+            <button onclick="confirmDelete()" class="confirm-btn">Yes, Delete</button>
+            <button onclick="cancelDelete()" class="cancel-btn">Cancel</button>
         </div>
     </div>
 </div>
