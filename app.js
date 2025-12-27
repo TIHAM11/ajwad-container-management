@@ -166,14 +166,14 @@ document.addEventListener("DOMContentLoaded", () => {
             <td>${c.item}</td>
             <td>${formatDate(c.date)}</td>
 
-            <td>${c.bagsCount || 0}</td>
+            <td>${c.bags || c.bagsCount || 0}</td>
             <td>${c.weightPerBag || 0} KG</td>
             <td>${c.totalWeight || 0} KG</td>
 
             <td>AED ${c.totalCost || 0}</td>
             <td>AED ${c.selling || 0}</td>
 
-            <td>AED ${c.costPerBag?.toFixed(2) || 0}</td>
+            <td>AED ${(c.costPerBag || 0).toFixed(2)}</td>
 
             <td class="${c.profitLoss >= 0 ? 'profit-text' : 'loss-text'}">
                 ${c.profitLoss >= 0 ? '+ AED ' : '- AED '} ${Math.abs(c.profitLoss)}
