@@ -13,8 +13,8 @@
     <h2 class="logo">Ajwad</h2>
     <ul>
         <li><a href="index.html">Dashboard</a></li>
-        <li><a href="add-container.html">Add Container</a></li>
-        <li><a href="containers.html" class="active">Containers</a></li>
+        <li><a href="add-container.html" class="active">Add Container</a></li>
+        <li><a href="containers.html">Containers</a></li>
         <li><button onclick="logoutUser()" class="logout-btn">Logout</button></li>
     </ul>
 </nav>
@@ -43,18 +43,18 @@
 
                 <tr>
                     <td>Item</td>
-                    <td><input type="text" id="item" placeholder="Onions" required></td>
+                    <td><input type="text" id="item" placeholder="Fruits & Vegetables" value="Fruits & Vegetables" required></td>
                 </tr>
 
                 <!-- BUSINESS FIELDS -->
                 <tr>
                     <td>Total Bags</td>
-                    <td><input type="number" id="bags" placeholder="1200"></td>
+                    <td><input type="number" id="bags"></td>
                 </tr>
 
                 <tr>
                     <td>Weight Per Bag (KG)</td>
-                    <td><input type="number" id="weightPerBag" placeholder="25"></td>
+                    <td><input type="number" id="weightPerBag"></td>
                 </tr>
 
                 <tr>
@@ -62,30 +62,43 @@
                     <td><input type="number" id="totalWeight" readonly></td>
                 </tr>
 
+                <!-- EXPENSES -->
+                <tr>
+                    <td>Purchase Cost (AED)</td>
+                    <td><input type="number" id="purchase"></td>
+                </tr>
+
+                <tr>
+                    <td>Shipping & Logistics</td>
+                    <td><input type="number" id="shipping"></td>
+                </tr>
+
+                <tr>
+                    <td>Customs & Other Expenses</td>
+                    <td><input type="number" id="customs"></td>
+                </tr>
+
+                <!-- MOVED BELOW EXPENSES -->
                 <tr>
                     <td>Cost Per Bag (AED)</td>
                     <td><input type="number" id="costPerBag" readonly></td>
                 </tr>
 
-                <!-- EXPENSES -->
+                <!-- NEW FIELD -->
                 <tr>
-                    <td>Purchase Cost (AED)</td>
-                    <td><input type="number" id="purchase" placeholder="5000"></td>
+                    <td>Bag Selling Price (AED)</td>
+                    <td><input type="number" id="bagSelling"></td>
+                </tr>
+
+                <!-- NEW AUTO RESULT -->
+                <tr>
+                    <td>Bag Profit / Loss (AED)</td>
+                    <td><input type="text" id="bagProfitLoss" readonly></td>
                 </tr>
 
                 <tr>
-                    <td>Shipping & Logistics</td>
-                    <td><input type="number" id="shipping" placeholder="1500"></td>
-                </tr>
-
-                <tr>
-                    <td>Customs & Other Expenses</td>
-                    <td><input type="number" id="customs" placeholder="800"></td>
-                </tr>
-
-                <tr>
-                    <td>Selling Amount</td>
-                    <td><input type="number" id="selling" placeholder="9000"></td>
+                    <td>Selling Amount (Total)</td>
+                    <td><input type="number" id="selling"></td>
                 </tr>
 
             </table>
@@ -99,54 +112,70 @@
 </div>
 
 <script>
-/* ==========================================
-   AUTO CALC — TOTAL WEIGHT + COST PER BAG
-========================================== */
-
 const bagsEl = document.getElementById("bags");
 const weightEl = document.getElementById("weightPerBag");
 const totalWeightEl = document.getElementById("totalWeight");
-const costPerBagEl = document.getElementById("costPerBag");
 
 const purchaseEl = document.getElementById("purchase");
 const shippingEl = document.getElementById("shipping");
 const customsEl = document.getElementById("customs");
-const sellingEl = document.getElementById("selling");
 
+const costPerBagEl = document.getElementById("costPerBag");
+const bagSellingEl = document.getElementById("bagSelling");
+const bagProfitLossEl = document.getElementById("bagProfitLoss");
+
+const sellingEl = document.getElementById("selling");
 const resultBox = document.getElementById("resultBox");
 const formEl = document.getElementById("containerForm");
 
 function recalcValues() {
+
     const bags = Number(bagsEl.value || 0);
     const weightPerBag = Number(weightEl.value || 0);
+
     const purchase = Number(purchaseEl.value || 0);
     const shipping = Number(shippingEl.value || 0);
     const customs = Number(customsEl.value || 0);
     const selling = Number(sellingEl.value || 0);
 
+    const bagSelling = Number(bagSellingEl.value || 0);
+
     const totalCost = purchase + shipping + customs;
+
     const totalWeight = bags * weightPerBag;
     totalWeightEl.value = totalWeight || 0;
 
     const costPerBag = bags > 0 ? (totalCost / bags).toFixed(2) : 0;
     costPerBagEl.value = costPerBag;
 
-    // live profit/loss display
+    // per bag profit / loss
+    const bagProfit = (bagSelling - costPerBag).toFixed(2);
+    if (bagSelling > 0 && costPerBag > 0) {
+        bagProfitLossEl.value =
+            (bagProfit >= 0 ? "Profit " : "Loss ") + Math.abs(bagProfit) + " AED";
+    } else {
+        bagProfitLossEl.value = "";
+    }
+
+    // container profit/loss
     const profitLoss = selling - totalCost;
     if (selling > 0) {
-        resultBox.innerHTML = (profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") + Math.abs(profitLoss);
-        resultBox.style.color = profitLoss >= 0 ? "green" : "red";
+            resultBox.innerHTML =
+                (profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") +
+                Math.abs(profitLoss);
+            resultBox.style.color = profitLoss >= 0 ? "green" : "red";
     }
 }
 
-// Add event listeners
-["bags","weightPerBag","purchase","shipping","customs","selling"].forEach(id => {
+[
+ "bags","weightPerBag",
+ "purchase","shipping","customs",
+ "selling","bagSelling"
+].forEach(id => {
     document.getElementById(id).addEventListener("input", recalcValues);
 });
 
-/* ==========================================
-   EDIT MODE — AUTO FILL EXISTING DATA
-========================================== */
+/* ---------- EDIT MODE ---------- */
 let editIndex = localStorage.getItem("editIndex");
 let editData = localStorage.getItem("editData");
 
@@ -164,35 +193,50 @@ if (editData) {
     bagsEl.value = editData.bags || 0;
     weightEl.value = editData.weightPerBag || 0;
     totalWeightEl.value = editData.totalWeight || 0;
-    costPerBagEl.value = editData.costPerBag || 0;
 
     purchaseEl.value = editData.purchase || 0;
     shippingEl.value = editData.shipping || 0;
     customsEl.value = editData.customs || 0;
+
+    costPerBagEl.value = editData.costPerBag || 0;
+
+    bagSellingEl.value = editData.bagSelling || 0;
+    bagProfitLossEl.value = editData.bagProfitLoss || "";
+
     sellingEl.value = editData.selling || 0;
 
     recalcValues();
 }
 
-/* ==========================================
-   SAVE / UPDATE CONTAINER
-========================================== */
+/* ---------- SAVE ---------- */
 formEl.addEventListener("submit", function(event) {
     event.preventDefault();
+
+    const totalCost =
+        Number(purchaseEl.value || 0) +
+        Number(shippingEl.value || 0) +
+        Number(customsEl.value || 0);
 
     const payload = {
         containerNo: document.getElementById("containerNo").value,
         item: document.getElementById("item").value,
         date: document.getElementById("containerDate").value,
+
         bags: Number(bagsEl.value || 0),
         weightPerBag: Number(weightEl.value || 0),
         totalWeight: Number(totalWeightEl.value || 0),
-        costPerBag: Number(costPerBagEl.value || 0),
+
         purchase: Number(purchaseEl.value || 0),
         shipping: Number(shippingEl.value || 0),
         customs: Number(customsEl.value || 0),
+
+        costPerBag: Number(costPerBagEl.value || 0),
+
+        bagSelling: Number(bagSellingEl.value || 0),
+        bagProfitLoss: bagProfitLossEl.value,
+
         selling: Number(sellingEl.value || 0),
-        totalCost: Number(purchaseEl.value || 0) + Number(shippingEl.value || 0) + Number(customsEl.value || 0),
+        totalCost: totalCost
     };
 
     payload.profitLoss = payload.selling - payload.totalCost;
@@ -208,8 +252,13 @@ formEl.addEventListener("submit", function(event) {
         resultBox.style.color = "green";
     } else {
         containers.push(payload);
-        resultBox.innerHTML = (payload.profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") + Math.abs(payload.profitLoss);
-        resultBox.style.color = payload.profitLoss >= 0 ? "green" : "red";
+
+        resultBox.innerHTML =
+            (payload.profitLoss >= 0 ? "✅ Profit: AED " : "❌ Loss: AED ") +
+            Math.abs(payload.profitLoss);
+
+        resultBox.style.color =
+            payload.profitLoss >= 0 ? "green" : "red";
 
         formEl.reset();
         recalcValues();
