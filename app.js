@@ -287,3 +287,7 @@ function formatDate(dateString) {
         year: "numeric"
     });
 }
+
+window.editContainer = editContainer;
+window.askDelete = askDelete;
+
