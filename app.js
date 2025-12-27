@@ -254,6 +254,10 @@ if (cancelDeleteBtn) {
     });
 };
 
+function askDelete(index) {
+    showDeletePopup(index);
+}
+
 
 /* ==========================
    EDIT CONTAINER
@@ -288,6 +292,5 @@ function formatDate(dateString) {
     });
 }
 
-window.editContainer = editContainer;
-window.askDelete = askDelete;
+
 
