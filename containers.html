@@ -187,75 +187,77 @@ function loadPage() {
 loadPage();
 
 /* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
-function createPdf(container) {
+function createPDF(containerId) {
 
-    const c = container;
+    // Get saved containers list
+    const containers = JSON.parse(localStorage.getItem("containers")) || [];
 
-    // ---- SAFE NUMERIC VALUES ----
-    const costPerBag   = Number(c.costPerBag   || 0);
-    const bagPrice     = Number(c.bagSellingPrice || 0);
-    const totalCost    = Number(c.totalCost    || 0);
-    const totalSale    = Number(c.totalSale    || 0);
+    // Find selected container
+    const container = containers.find(c => c.id === containerId);
 
-    // ---- ALWAYS CALCULATED (NO FALLBACK CONFUSION) ----
-    const bagProfit = bagPrice - costPerBag;
-    const totalProfit = totalSale - totalCost;
+    if (!container) {
+        alert("Container data not found");
+        return;
+    }
 
-    const profitColor = totalProfit >= 0 ? "green" : "red";
-    const bagProfitColor = bagProfit >= 0 ? "green" : "red";
+    // Open new print window
+    const win = window.open("", "_blank");
 
-    const html = `
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial; padding: 15px; }
-            table { width: 100%; border-collapse: collapse; }
-            td { padding: 8px 4px; border-bottom: 1px solid #ddd; }
-            .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-        </style>
-    </head>
+    win.document.write(`
+        <html>
+        <head>
+            <title>Container Report - ${container.containerNo}</title>
 
-    <body>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h2 { margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                td { border: 1px solid #ccc; padding: 8px; }
+                td:first-child { font-weight: bold; width: 40%; }
+                .profit { color: green; font-weight: bold; }
+                .loss { color: red; font-weight: bold; }
+            </style>
+        </head>
 
-        <div class="title">Container Profit Report</div>
+        <body>
+
+        <h2>Container Profit Report</h2>
 
         <table>
 
-            <tr><td>Container Name</td><td>${c.containerName}</td></tr>
-            <tr><td>Date</td><td>${c.date}</td></tr>
+            <tr><td>Container No</td><td>${container.containerNo}</td></tr>
+            <tr><td>Item</td><td>${container.item}</td></tr>
+            <tr><td>Date</td><td>${container.date}</td></tr>
 
-            <tr><td>Total Cost</td><td>AED ${totalCost.toFixed(2)}</td></tr>
-            <tr><td>Total Sale</td><td>AED ${totalSale.toFixed(2)}</td></tr>
+            <tr><td>Total Cost</td><td>${container.totalCost}</td></tr>
+            <tr><td>Total Selling</td><td>${container.totalSelling}</td></tr>
 
-            <tr>
-                <td>Total Profit / Loss</td>
-                <td style="color:${profitColor}">
-                    ${totalProfit >= 0 ? "+ AED " : "- AED "}
-                    ${Math.abs(totalProfit).toFixed(2)}
+            <tr><td>Overall Profit / Loss</td>
+                <td class="${container.overallProfitLoss.includes('-') ? 'loss' : 'profit'}">
+                    ${container.overallProfitLoss}
                 </td>
             </tr>
 
-            <tr><td>Cost / Bag</td><td>AED ${costPerBag.toFixed(2)}</td></tr>
-            <tr><td>Bag Selling Price</td><td>AED ${bagPrice.toFixed(2)}</td></tr>
+            <tr><td>Cost / Bag</td><td>${container.costPerBag}</td></tr>
+            <tr><td>Bag Selling Price</td><td>${container.bagSellingPrice}</td></tr>
 
-            <tr>
-                <td>Bag Profit / Loss</td>
-                <td style="color:${bagProfitColor}">
-                    ${bagProfit >= 0 ? "+ AED " : "- AED "}
-                    ${Math.abs(bagProfit).toFixed(2)}
+            <tr><td>Bag Profit / Loss</td>
+                <td class="${container.bagProfitLoss.includes('-') ? 'loss' : 'profit'}">
+                    ${container.bagProfitLoss}
                 </td>
             </tr>
 
         </table>
 
-    </body>
-    </html>
-    `;
+        <script>
+            window.print();
+        <\/script>
 
-    const newWindow = window.open("");
-    newWindow.document.write(html);
-    newWindow.document.close();
-    newWindow.print();
+        </body>
+        </html>
+    `);
+
+    win.document.close();
 }
 </script>
 
