@@ -49,7 +49,6 @@
                     <th>Total Cost</th>
                     <th>Selling</th>
 
-                    <!-- MAIN COLUMNS -->
                     <th>Cost / Bag</th>
                     <th>Bag Selling Price</th>
                     <th>Bag Profit / Loss</th>
@@ -74,36 +73,29 @@ function getContainers() {
     return JSON.parse(localStorage.getItem("containers")) || [];
 }
 
-/* ---------- RENDER TABLE ---------- */
+/* ---------- RENDER TABLE (USE SAVED VALUES ONLY) ---------- */
 function renderTable(list) {
+
     tableBody.innerHTML = "";
 
     list.forEach((c, index) => {
 
-        const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
-        const weightPerBag = Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
+        const bags = Number(c.bags || 0);
+        const weightPerBag = Number(c.weightPerBag || 0);
+        const totalWeight = Number(c.totalWeight || (bags * weightPerBag));
 
-        const totalWeight = c.totalWeight
-            ? Number(c.totalWeight)
-            : bags * weightPerBag;
+        const totalCost = Number(c.totalCost || 0);
+        const selling   = Number(c.selling || 0);
 
-        const totalCost = Number(c.totalCost ?? c.cost ?? 0);
-        const selling   = Number(c.selling ?? c.totalSelling ?? 0);
+        /* ✅ DIRECTLY USE SAVED VALUES */
+        const costPerBag = Number(c.costPerBag || 0);
+        const bagSelling = Number(c.bagSelling || 0);
 
-        const costPerBag = bags ? (totalCost / bags) : 0;
+        /* ❗ NO RECALCULATION — USE EXACT SAVED TEXT */
+        const bagProfitLossText = c.bagProfitLoss || "";
 
-        /* ✅ Bag Selling Price Priority
-           1) Use saved "bagSellingPrice" if available
-           2) Otherwise calculate from total selling */
-        const bagSellingPrice = c.bagSellingPrice
-            ? Number(c.bagSellingPrice)
-            : (bags ? (selling / bags) : 0);
-
-        /* ✅ Correct bag profit formula */
-        const bagProfitLoss = bagSellingPrice - costPerBag;
-
-        /* ✅ Overall profit (full container) */
-        const overallProfitLoss = selling - totalCost;
+        /* overall profit already saved in add-container */
+        const overallProfitLoss = Number(c.profitLoss || (selling - totalCost));
 
         const row = `
         <tr>
@@ -119,14 +111,11 @@ function renderTable(list) {
             <td>AED ${selling}</td>
 
             <td>AED ${costPerBag.toFixed(2)}</td>
+            <td>AED ${bagSelling.toFixed(2)}</td>
 
-            <td>AED ${bagSellingPrice.toFixed(2)}</td>
+            <td>${bagProfitLossText}</td>
 
-            <td class="${bagProfitLoss >= 0 ? "profit" : "loss"}">
-                ${bagProfitLoss >= 0 ? "+" : "-"} AED ${Math.abs(bagProfitLoss).toFixed(2)}
-            </td>
-
-            <td class="${overallProfitLoss >= 0 ? "profit" : "loss"}">
+            <td class="${overallProfitLoss >= 0 ? "profit":"loss"}">
                 ${overallProfitLoss >= 0 ? "+" : "-"} AED ${Math.abs(overallProfitLoss)}
             </td>
 
@@ -180,97 +169,22 @@ function confirmDelete() {
 
 /* ---------- LOAD & SEARCH ---------- */
 function loadPage() {
+
     const data = getContainers();
     renderTable(data);
 
     searchBox.addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
+
         const filtered = getContainers().filter(c =>
             JSON.stringify(c).toLowerCase().includes(q)
         );
+
         renderTable(filtered);
     });
 }
 
 loadPage();
-
-/* ---------- CREATE PDF ---------- */
-function createPdf(index) {
-
-    const containers = getContainers();
-    const c = containers[index];
-
-    const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
-    const weightPerBag = Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
-    const totalWeight = c.totalWeight ? Number(c.totalWeight) : bags * weightPerBag;
-
-    const totalCost = Number(c.totalCost ?? c.cost ?? 0);
-    const selling   = Number(c.selling ?? c.totalSelling ?? 0);
-
-    const costPerBag = bags ? (totalCost / bags) : 0;
-
-    const bagSelling = c.bagSellingPrice
-        ? Number(c.bagSellingPrice)
-        : (bags ? (selling / bags) : 0);
-
-    const bagPL = bagSelling - costPerBag;
-    const totalPL = selling - totalCost;
-
-    const win = window.open("", "_blank");
-
-    win.document.write(`
-        <html>
-        <head>
-            <title>Container Report - ${c.containerNo}</title>
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                h2 { margin-bottom: 5px; }
-                table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-                td,th { border:1px solid #444; padding:8px; }
-                .profit { color: green; font-weight:bold; }
-                .loss { color: red; font-weight:bold; }
-            </style>
-        </head>
-
-        <body>
-
-            <h2>Container Report</h2>
-            <p><b>Date:</b> ${c.date || ""}</p>
-
-            <table>
-                <tr><th>Container No</th><td>${c.containerNo || ""}</td></tr>
-                <tr><th>Item</th><td>${c.item || ""}</td></tr>
-                <tr><th>No. of Bags</th><td>${bags}</td></tr>
-                <tr><th>Weight / Bag</th><td>${weightPerBag} KG</td></tr>
-                <tr><th>Total Weight</th><td>${totalWeight} KG</td></tr>
-                <tr><th>Total Cost</th><td>AED ${totalCost}</td></tr>
-                <tr><th>Total Selling</th><td>AED ${selling}</td></tr>
-                <tr><th>Cost / Bag</th><td>AED ${costPerBag.toFixed(2)}</td></tr>
-                <tr><th>Bag Selling Price</th><td>AED ${bagSelling.toFixed(2)}</td></tr>
-                <tr>
-                    <th>Bag Profit / Loss</th>
-                    <td class="${bagPL >= 0 ? "profit" : "loss"}">
-                        ${bagPL >= 0 ? "+" : "-"} AED ${Math.abs(bagPL).toFixed(2)}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Total Profit / Loss</th>
-                    <td class="${totalPL >= 0 ? "profit" : "loss"}">
-                        ${totalPL >= 0 ? "+" : "-"} AED ${Math.abs(totalPL)}
-                    </td>
-                </tr>
-            </table>
-
-            <script>
-                window.print();
-            <\/script>
-
-        </body>
-        </html>
-    `);
-
-    win.document.close();
-}
 </script>
 
 <!-- Delete confirmation popup -->
