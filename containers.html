@@ -191,6 +191,10 @@ function createPdf(index) {
 
     const containers = getContainers();
     const c = containers[index];
+    const bagProfit =
+    Number(c.bagProfitLoss) ||
+    Number(c.bagSellingPrice - c.costPerBag) ||
+    0;
 
     // 🟢 Use stored values exactly as saved
     const bags = Number(c.bags || c.numBags || 0);
@@ -243,9 +247,10 @@ function createPdf(index) {
                 <tr><th>Bag Selling Price</th><td>AED ${bagSellingPrice.toFixed(2)}</td></tr>
 
                 <tr>
-                    <th>Bag Profit / Loss</th>
-                    <td class="${bagProfitLoss >= 0 ? 'profit' : 'loss'}">
-                        ${bagProfitLoss >= 0 ? '+ ' : '- '}AED ${Math.abs(bagProfitLoss).toFixed(2)}
+                    <td>Bag Profit / Loss</td>
+                    <td style="color:${bagProfit >= 0 ? 'green' : 'red'}">
+                        ${bagProfit >= 0 ? '+ AED ' : '- AED '}
+                        ${Math.abs(bagProfit).toFixed(2)}
                     </td>
                 </tr>
 
