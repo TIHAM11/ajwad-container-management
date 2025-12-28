@@ -187,91 +187,75 @@ function loadPage() {
 loadPage();
 
 /* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
-function createPdf(index) {
+function createPdf(container) {
 
-    const containers = getContainers();
-    const c = containers[index];
-    const bagProfit =
-    Number(c.bagProfitLoss) ||
-    Number(c.bagSellingPrice - c.costPerBag) ||
-    0;
+    const c = container;
 
-    // 🟢 Use stored values exactly as saved
-    const bags = Number(c.bags || c.numBags || 0);
-    const weightPerBag = Number(c.weightPerBag || 0);
-    const totalWeight = c.totalWeight || (bags * weightPerBag);
+    // ---- SAFE NUMERIC VALUES ----
+    const costPerBag   = Number(c.costPerBag   || 0);
+    const bagPrice     = Number(c.bagSellingPrice || 0);
+    const totalCost    = Number(c.totalCost    || 0);
+    const totalSale    = Number(c.totalSale    || 0);
 
-    const totalCost = Number(c.totalCost || 0);
-    const totalSelling = Number(c.selling || c.totalSelling || 0);
+    // ---- ALWAYS CALCULATED (NO FALLBACK CONFUSION) ----
+    const bagProfit = bagPrice - costPerBag;
+    const totalProfit = totalSale - totalCost;
 
-    const costPerBag = Number(c.costPerBag || 0);
-    const bagSellingPrice = Number(c.bagSelling || c.bagSellingPrice || 0);
+    const profitColor = totalProfit >= 0 ? "green" : "red";
+    const bagProfitColor = bagProfit >= 0 ? "green" : "red";
 
-    const bagProfitLoss = Number(c.bagProfitLossValue || c.bagProfitLoss || 0);
-    const overallProfitLoss = Number(c.profitLoss || c.overallProfitLoss || 0);
+    const html = `
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial; padding: 15px; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 8px 4px; border-bottom: 1px solid #ddd; }
+            .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        </style>
+    </head>
 
-    const win = window.open("", "_blank");
+    <body>
 
-    win.document.write(`
-        <html>
-        <head>
-            <title>Container Report - ${c.containerNo}</title>
+        <div class="title">Container Profit Report</div>
 
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-                th, td { border: 1px solid #555; padding: 8px; }
-                .profit { color: green; font-weight: bold; }
-                .loss { color: red; font-weight: bold; }
-            </style>
-        </head>
+        <table>
 
-        <body>
+            <tr><td>Container Name</td><td>${c.containerName}</td></tr>
+            <tr><td>Date</td><td>${c.date}</td></tr>
 
-            <h2>Container Report</h2>
-            <b>Date:</b> ${c.date || ""}
+            <tr><td>Total Cost</td><td>AED ${totalCost.toFixed(2)}</td></tr>
+            <tr><td>Total Sale</td><td>AED ${totalSale.toFixed(2)}</td></tr>
 
-            <table>
+            <tr>
+                <td>Total Profit / Loss</td>
+                <td style="color:${profitColor}">
+                    ${totalProfit >= 0 ? "+ AED " : "- AED "}
+                    ${Math.abs(totalProfit).toFixed(2)}
+                </td>
+            </tr>
 
-                <tr><th>Container No</th><td>${c.containerNo}</td></tr>
-                <tr><th>Item</th><td>${c.item}</td></tr>
+            <tr><td>Cost / Bag</td><td>AED ${costPerBag.toFixed(2)}</td></tr>
+            <tr><td>Bag Selling Price</td><td>AED ${bagPrice.toFixed(2)}</td></tr>
 
-                <tr><th>No. of Bags</th><td>${bags}</td></tr>
-                <tr><th>Weight / Bag</th><td>${weightPerBag} KG</td></tr>
-                <tr><th>Total Weight</th><td>${totalWeight} KG</td></tr>
+            <tr>
+                <td>Bag Profit / Loss</td>
+                <td style="color:${bagProfitColor}">
+                    ${bagProfit >= 0 ? "+ AED " : "- AED "}
+                    ${Math.abs(bagProfit).toFixed(2)}
+                </td>
+            </tr>
 
-                <tr><th>Total Cost</th><td>AED ${totalCost}</td></tr>
-                <tr><th>Total Selling</th><td>AED ${totalSelling}</td></tr>
+        </table>
 
-                <tr><th>Cost / Bag</th><td>AED ${costPerBag.toFixed(2)}</td></tr>
-                <tr><th>Bag Selling Price</th><td>AED ${bagSellingPrice.toFixed(2)}</td></tr>
+    </body>
+    </html>
+    `;
 
-                <tr>
-                    <td>Bag Profit / Loss</td>
-                    <td style="color:${bagProfit >= 0 ? 'green' : 'red'}">
-                        ${bagProfit >= 0 ? '+ AED ' : '- AED '}
-                        ${Math.abs(bagProfit).toFixed(2)}
-                    </td>
-                </tr>
-
-                <tr>
-                    <th>Total Profit / Loss</th>
-                    <td class="${overallProfitLoss >= 0 ? 'profit' : 'loss'}">
-                        ${overallProfitLoss >= 0 ? '+ ' : '- '}AED ${Math.abs(overallProfitLoss)}
-                    </td>
-                </tr>
-
-            </table>
-
-            <script>
-                window.print();
-            <\/script>
-
-        </body>
-        </html>
-    `);
-
-    win.document.close();
+    const newWindow = window.open("");
+    newWindow.document.write(html);
+    newWindow.document.close();
+    newWindow.print();
 }
 </script>
 
