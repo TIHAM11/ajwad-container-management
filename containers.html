@@ -188,6 +188,7 @@ loadPage();
 
 /* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
 function createPDF(index) {
+
     const containers = getContainers();
     const c = containers[index];
 
@@ -203,13 +204,14 @@ function createPDF(index) {
         <html>
         <head>
             <title>Container Report</title>
+
             <style>
                 body { font-family: Arial; padding: 20px; }
                 table { width: 100%; border-collapse: collapse; }
-                td { padding: 10px; border-bottom: 1px solid #ddd; }
-                .profit { color: green; }
-                .loss { color: red; }
+                td { padding: 8px; border-bottom: 1px solid #ddd; }
+                h2 { margin-bottom: 10px; }
             </style>
+
         </head>
         <body>
 
@@ -218,36 +220,30 @@ function createPDF(index) {
             <table>
 
                 <tr><td>Container No</td><td>${c.containerNo}</td></tr>
+                <tr><td>Item</td><td>${c.item}</td></tr>
                 <tr><td>Date</td><td>${c.date}</td></tr>
 
-                <tr><td>Total Cost</td><td>AED ${c.totalCost}</td></tr>
-                <tr><td>Total Sale</td><td>AED ${c.selling}</td></tr>
+                <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
+                <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
+                <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
 
-                <tr>
-                    <td>Total Profit / Loss</td>
-                    <td class="${c.overallProfitLoss >= 0 ? 'profit' : 'loss'}">
-                        ${c.overallProfitLoss >= 0 ? '+' : '-'} AED ${Math.abs(c.overallProfitLoss)}
-                    </td>
-                </tr>
+                <tr><td>Total Cost</td><td>${c.totalCost}</td></tr>
+                <tr><td>Selling</td><td>${c.selling}</td></tr>
 
-                <tr><td>Cost / Bag</td><td>AED ${c.costPerBag}</td></tr>
-                <tr><td>Bag Selling Price</td><td>AED ${c.bagSelling}</td></tr>
+                <tr><td>Cost / Bag</td><td>${c.costPerBag}</td></tr>
+                <tr><td>Bag Selling Price</td><td>${c.bagSelling}</td></tr>
 
-                <tr>
-                    <td>Bag Profit / Loss</td>
-                    <td class="${c.bagProfitLoss >= 0 ? 'profit' : 'loss'}">
-                        ${c.bagProfitLoss >= 0 ? '+' : '-'} AED ${Math.abs(c.bagProfitLoss)}
-                    </td>
-                </tr>
+                <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss}</td></tr>
+                <tr><td>Overall Profit / Loss</td><td>${c.overallProfitLoss}</td></tr>
 
             </table>
 
         </body>
         </html>
     `);
+
     reportWindow.document.close();
 
-    // print AFTER window loads (prevents syntax error)
     reportWindow.onload = () => reportWindow.print();
 }
 </script>
