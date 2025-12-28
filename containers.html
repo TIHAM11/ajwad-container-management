@@ -49,10 +49,11 @@
                     <th>Total Cost</th>
                     <th>Selling</th>
 
-                    <!-- NEW COLUMNS -->
+                    <!-- MAIN COLUMNS -->
                     <th>Cost / Bag</th>
                     <th>Bag Selling Price</th>
                     <th>Bag Profit / Loss</th>
+                    <th>Overall Profit / Loss</th>
 
                     <th>Action</th>
                 </tr>
@@ -91,15 +92,18 @@ function renderTable(list) {
 
         const costPerBag = bags ? (totalCost / bags) : 0;
 
-        /* NEW — Bag selling price */
-        const bagSellingPrice = bags ? (selling / bags) : 0;
+        /* ✅ Bag Selling Price Priority
+           1) Use saved "bagSellingPrice" if available
+           2) Otherwise calculate from total selling */
+        const bagSellingPrice = c.bagSellingPrice
+            ? Number(c.bagSellingPrice)
+            : (bags ? (selling / bags) : 0);
 
-        /* NEW — Bag profit / loss */
+        /* ✅ Correct bag profit formula */
         const bagProfitLoss = bagSellingPrice - costPerBag;
 
-        const profitLoss = selling - totalCost;
-        const plClass = profitLoss >= 0 ? "profit" : "loss";
-        const plSign  = profitLoss >= 0 ? "+" : "-";
+        /* ✅ Overall profit (full container) */
+        const overallProfitLoss = selling - totalCost;
 
         const row = `
         <tr>
@@ -120,6 +124,10 @@ function renderTable(list) {
 
             <td class="${bagProfitLoss >= 0 ? "profit" : "loss"}">
                 ${bagProfitLoss >= 0 ? "+" : "-"} AED ${Math.abs(bagProfitLoss).toFixed(2)}
+            </td>
+
+            <td class="${overallProfitLoss >= 0 ? "profit" : "loss"}">
+                ${overallProfitLoss >= 0 ? "+" : "-"} AED ${Math.abs(overallProfitLoss)}
             </td>
 
             <td>
@@ -186,6 +194,7 @@ function loadPage() {
 
 loadPage();
 
+/* ---------- CREATE PDF ---------- */
 function createPdf(index) {
 
     const containers = getContainers();
@@ -199,7 +208,11 @@ function createPdf(index) {
     const selling   = Number(c.selling ?? c.totalSelling ?? 0);
 
     const costPerBag = bags ? (totalCost / bags) : 0;
-    const bagSelling = bags ? (selling / bags) : 0;
+
+    const bagSelling = c.bagSellingPrice
+        ? Number(c.bagSellingPrice)
+        : (bags ? (selling / bags) : 0);
+
     const bagPL = bagSelling - costPerBag;
     const totalPL = selling - totalCost;
 
