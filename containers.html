@@ -185,64 +185,78 @@ function loadPage() {
 }
 
 loadPage();
-/* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
+
 function createPdf(index) {
-    const containers = JSON.parse(localStorage.getItem("containers")) || [];
+
+    const containers = getContainers();
     const c = containers[index];
 
-    // Use saved numeric values directly (no recalculation)
-    const bagSellingPrice = c.bagSellingPrice;
-    const bagProfitLoss = c.bagProfitLoss;
-    const overallProfitLoss = c.overallProfitLoss;
+    const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+    const weightPerBag = Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
+    const totalWeight = c.totalWeight ? Number(c.totalWeight) : bags * weightPerBag;
 
-    const reportWindow = window.open("", "_blank");
-    reportWindow.document.write(`
+    const totalCost = Number(c.totalCost ?? c.cost ?? 0);
+    const selling   = Number(c.selling ?? c.totalSelling ?? 0);
+
+    const costPerBag = bags ? (totalCost / bags) : 0;
+    const bagSelling = bags ? (selling / bags) : 0;
+    const bagPL = bagSelling - costPerBag;
+    const totalPL = selling - totalCost;
+
+    const win = window.open("", "_blank");
+
+    win.document.write(`
         <html>
         <head>
-        <title>Container Report - ${c.containerNo}</title>
-        <style>
-            body { font-family: Arial; padding: 20px; }
-            table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-            td, th { border: 1px solid #666; padding: 10px; }
-            .profit { color: green; font-weight: bold; }
-            .loss { color: red; font-weight: bold; }
-        </style>
+            <title>Container Report - ${c.containerNo}</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h2 { margin-bottom: 5px; }
+                table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+                td,th { border:1px solid #444; padding:8px; }
+                .profit { color: green; font-weight:bold; }
+                .loss { color: red; font-weight:bold; }
+            </style>
         </head>
+
         <body>
 
-        <h2>Container Report</h2>
-        <b>Date:</b> ${c.date}
+            <h2>Container Report</h2>
+            <p><b>Date:</b> ${c.date || ""}</p>
 
-        <table>
-            <tr><th>Container No</th><td>${c.containerNo}</td></tr>
-            <tr><th>Item</th><td>${c.item}</td></tr>
-            <tr><th>No. of Bags</th><td>${c.numBags}</td></tr>
-            <tr><th>Total Weight</th><td>${c.totalWeight} KG</td></tr>
-            <tr><th>Total Cost</th><td>AED ${c.totalCost}</td></tr>
-            <tr><th>Total Selling</th><td>AED ${c.totalSelling}</td></tr>
-            <tr><th>Cost / Bag</th><td>AED ${c.costPerBag}</td></tr>
+            <table>
+                <tr><th>Container No</th><td>${c.containerNo || ""}</td></tr>
+                <tr><th>Item</th><td>${c.item || ""}</td></tr>
+                <tr><th>No. of Bags</th><td>${bags}</td></tr>
+                <tr><th>Weight / Bag</th><td>${weightPerBag} KG</td></tr>
+                <tr><th>Total Weight</th><td>${totalWeight} KG</td></tr>
+                <tr><th>Total Cost</th><td>AED ${totalCost}</td></tr>
+                <tr><th>Total Selling</th><td>AED ${selling}</td></tr>
+                <tr><th>Cost / Bag</th><td>AED ${costPerBag.toFixed(2)}</td></tr>
+                <tr><th>Bag Selling Price</th><td>AED ${bagSelling.toFixed(2)}</td></tr>
+                <tr>
+                    <th>Bag Profit / Loss</th>
+                    <td class="${bagPL >= 0 ? "profit" : "loss"}">
+                        ${bagPL >= 0 ? "+" : "-"} AED ${Math.abs(bagPL).toFixed(2)}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Total Profit / Loss</th>
+                    <td class="${totalPL >= 0 ? "profit" : "loss"}">
+                        ${totalPL >= 0 ? "+" : "-"} AED ${Math.abs(totalPL)}
+                    </td>
+                </tr>
+            </table>
 
-            <tr><th>Bag Selling Price</th>
-                <td>AED ${bagSellingPrice}</td></tr>
-
-            <tr><th>Bag Profit / Loss</th>
-                <td class="${bagProfitLoss >= 0 ? 'profit' : 'loss'}">
-                    ${bagProfitLoss >= 0 ? '+ ' : '- '}AED ${Math.abs(bagProfitLoss)}
-                </td>
-            </tr>
-
-            <tr><th>Total Profit / Loss</th>
-                <td class="${overallProfitLoss >= 0 ? 'profit' : 'loss'}">
-                    ${overallProfitLoss >= 0 ? '+ ' : '- '}AED ${Math.abs(overallProfitLoss)}
-                </td>
-            </tr>
-        </table>
+            <script>
+                window.print();
+            <\/script>
 
         </body>
         </html>
     `);
 
-    reportWindow.document.close();
+    win.document.close();
 }
 </script>
 
