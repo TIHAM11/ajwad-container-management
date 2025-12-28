@@ -198,6 +198,7 @@ function createPDF(index) {
 
     const reportWindow = window.open("", "_blank");
 
+    reportWindow.document.open();
     reportWindow.document.write(`
         <html>
         <head>
@@ -216,13 +217,14 @@ function createPDF(index) {
 
             <table>
 
-                <tr><td>Container Name</td><td>${c.containerNo}</td></tr>
+                <tr><td>Container No</td><td>${c.containerNo}</td></tr>
                 <tr><td>Date</td><td>${c.date}</td></tr>
 
                 <tr><td>Total Cost</td><td>AED ${c.totalCost}</td></tr>
                 <tr><td>Total Sale</td><td>AED ${c.selling}</td></tr>
 
-                <tr><td>Total Profit / Loss</td>
+                <tr>
+                    <td>Total Profit / Loss</td>
                     <td class="${c.overallProfitLoss >= 0 ? 'profit' : 'loss'}">
                         ${c.overallProfitLoss >= 0 ? '+' : '-'} AED ${Math.abs(c.overallProfitLoss)}
                     </td>
@@ -231,7 +233,8 @@ function createPDF(index) {
                 <tr><td>Cost / Bag</td><td>AED ${c.costPerBag}</td></tr>
                 <tr><td>Bag Selling Price</td><td>AED ${c.bagSelling}</td></tr>
 
-                <tr><td>Bag Profit / Loss</td>
+                <tr>
+                    <td>Bag Profit / Loss</td>
                     <td class="${c.bagProfitLoss >= 0 ? 'profit' : 'loss'}">
                         ${c.bagProfitLoss >= 0 ? '+' : '-'} AED ${Math.abs(c.bagProfitLoss)}
                     </td>
@@ -239,15 +242,13 @@ function createPDF(index) {
 
             </table>
 
-            <script>
-                window.print();
-            </script>
-
         </body>
         </html>
     `);
-
     reportWindow.document.close();
+
+    // print AFTER window loads (prevents syntax error)
+    reportWindow.onload = () => reportWindow.print();
 }
 </script>
 
