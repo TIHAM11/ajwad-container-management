@@ -197,14 +197,25 @@ function createPDF(index) {
         return;
     }
 
-    // Handle possible variations in saved field names
-    const overallProfitLoss =
+    // Standardize overall profit/loss field
+    let overallProfitLoss =
         c.overallProfitLoss ||
         c.overallProfit ||
         c.totalProfitLoss ||
         c.profitLoss ||
         c.totalProfit ||
-        "—";
+        0;
+
+    // Convert numeric values into AED format if needed
+    if (typeof overallProfitLoss === "number") {
+        overallProfitLoss = `AED ${overallProfitLoss}`;
+    }
+
+    // Decide profit / loss color
+    const profitClass =
+        overallProfitLoss.toString().includes("-")
+        ? "loss"
+        : "profit";
 
     const reportWindow = window.open("", "_blank");
 
@@ -270,13 +281,6 @@ function createPDF(index) {
                     color: #222;
                 }
 
-                .section-title {
-                    font-weight: bold;
-                    margin-top: 20px;
-                    margin-bottom: 8px;
-                    color: #0a2a66;
-                }
-
                 .profit {
                     font-weight: bold;
                     color: green;
@@ -319,8 +323,8 @@ function createPDF(index) {
 
                     <tr>
                         <td>Overall Profit / Loss</td>
-                        <td class="${profitLoss.includes('-') ? 'loss' : 'profit'}">
-                            ${profitLoss}
+                        <td class="${profitClass}">
+                            ${overallProfitLoss}
                         </td>
                     </tr>
 
@@ -333,7 +337,6 @@ function createPDF(index) {
     `);
 
     reportWindow.document.close();
-
     reportWindow.onload = () => reportWindow.print();
 }
 </script>
