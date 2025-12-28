@@ -197,6 +197,14 @@ function createPDF(index) {
         return;
     }
 
+    // Handle possible variations in saved field names
+    const overallProfitLoss =
+        c.overallProfitLoss ||
+        c.overallProfit ||
+        c.totalProfitLoss ||
+        c.totalProfit ||
+        "—";
+
     const reportWindow = window.open("", "_blank");
 
     reportWindow.document.open();
@@ -206,37 +214,118 @@ function createPDF(index) {
             <title>Container Report</title>
 
             <style>
-                body { font-family: Arial; padding: 20px; }
-                table { width: 100%; border-collapse: collapse; }
-                td { padding: 8px; border-bottom: 1px solid #ddd; }
-                h2 { margin-bottom: 10px; }
-            </style>
 
+                body {
+                    font-family: Arial, Helvetica, sans-serif;
+                    padding: 30px;
+                    background: #f5f7fb;
+                }
+
+                .report-box {
+                    max-width: 900px;
+                    margin: auto;
+                    background: #ffffff;
+                    border-radius: 10px;
+                    padding: 25px 30px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+                }
+
+                .header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
+                .title {
+                    font-size: 22px;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+
+                .subtitle {
+                    font-size: 13px;
+                    color: #666;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                    font-size: 14px;
+                }
+
+                td {
+                    padding: 10px 8px;
+                    border-bottom: 1px solid #e6e6e6;
+                }
+
+                td:first-child {
+                    font-weight: bold;
+                    width: 35%;
+                    color: #333;
+                }
+
+                td:last-child {
+                    text-align: right;
+                    color: #222;
+                }
+
+                .section-title {
+                    font-weight: bold;
+                    margin-top: 20px;
+                    margin-bottom: 8px;
+                    color: #0a2a66;
+                }
+
+                .profit {
+                    font-weight: bold;
+                    color: green;
+                }
+
+                .loss {
+                    font-weight: bold;
+                    color: red;
+                }
+
+            </style>
         </head>
+
         <body>
 
-            <h2>Container Report</h2>
+            <div class="report-box">
 
-            <table>
+                <div class="header">
+                    <div class="title">Container Report</div>
+                    <div class="subtitle">Generated from Ajwad Container Management</div>
+                </div>
 
-                <tr><td>Container No</td><td>${c.containerNo}</td></tr>
-                <tr><td>Item</td><td>${c.item}</td></tr>
-                <tr><td>Date</td><td>${c.date}</td></tr>
+                <table>
 
-                <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
-                <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
-                <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
+                    <tr><td>Container No</td><td>${c.containerNo}</td></tr>
+                    <tr><td>Item</td><td>${c.item}</td></tr>
+                    <tr><td>Date</td><td>${c.date}</td></tr>
 
-                <tr><td>Total Cost</td><td>${c.totalCost}</td></tr>
-                <tr><td>Selling</td><td>${c.selling}</td></tr>
+                    <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
+                    <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
+                    <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
 
-                <tr><td>Cost / Bag</td><td>${c.costPerBag}</td></tr>
-                <tr><td>Bag Selling Price</td><td>${c.bagSelling}</td></tr>
+                    <tr><td>Total Cost</td><td>${c.totalCost}</td></tr>
+                    <tr><td>Selling</td><td>${c.selling}</td></tr>
 
-                <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss}</td></tr>
-                <tr><td>Overall Profit / Loss</td><td>${c.overallProfitLoss}</td></tr>
+                    <tr><td>Cost / Bag</td><td>${c.costPerBag}</td></tr>
+                    <tr><td>Bag Selling Price</td><td>${c.bagSelling}</td></tr>
 
-            </table>
+                    <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss}</td></tr>
+
+                    <tr>
+                        <td>Overall Profit / Loss</td>
+                        <td class="${overallProfitLoss.includes('-') ? 'loss' : 'profit'}">
+                            ${overallProfitLoss}
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
 
         </body>
         </html>
