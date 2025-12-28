@@ -14,12 +14,18 @@ function calculateProfit(event) {
     const bagsCount = Number(document.getElementById("bagsCount").value || 0);
     const weightPerBag = Number(document.getElementById("weightPerBag").value || 0);
 
-    // CALCULATIONS
+    // Bag Selling Price (NEW)
+    const bagSellingPrice = Number(document.getElementById("bagSellingPrice").value || 0);
+
+    // COST + PROFIT CALCULATION
     const totalCost = purchase + shipping + customs;
     const profitLoss = selling - totalCost;
 
-    const totalWeight = bagsCount * weightPerBag;     // NEW
-    const costPerBag = bagsCount > 0 ? (totalCost / bagsCount) : 0; // NEW
+    const totalWeight = bagsCount * weightPerBag;
+    const costPerBag = bagsCount > 0 ? (totalCost / bagsCount) : 0;
+
+    // BAG PROFIT / LOSS  ✔️ FIXED
+    const bagProfitLoss = bagSellingPrice - costPerBag;
 
     const containerData = {
         containerNo,
@@ -31,14 +37,17 @@ function calculateProfit(event) {
         customs,
         selling,
 
-        profitLoss,
         totalCost,
+        profitLoss,
 
-        // NEW DATA SAVED
+        // BAG VALUES SAVED
         bagsCount,
         weightPerBag,
         totalWeight,
-        costPerBag
+        costPerBag,
+
+        bagSellingPrice,
+        bagProfitLoss
     };
 
     let containers = JSON.parse(localStorage.getItem("containers")) || [];
