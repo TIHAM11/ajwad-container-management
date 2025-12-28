@@ -185,23 +185,37 @@ function loadPage() {
 }
 
 loadPage();
-/* ---------- CREATE PDF ---------- */
+/* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
 function createPdf(index) {
 
     const containers = getContainers();
     const c = containers[index];
 
-    // Read saved values (NO recalculation)
-    const bags = Number(c.noOfBags || 0);
-    const totalWeight = Number(c.totalWeight || 0);
+    // ✅ Always read the same values that were saved
+    const bags = Number(c.noOfBags ?? c.numBags ?? c.bags ?? 0);
+    const weightPerBag = Number(c.weightPerBag ?? c.weight_bag ?? c.weight ?? 0);
+    const totalWeight = c.totalWeight ? Number(c.totalWeight) : bags * weightPerBag;
 
-    const totalCost = Number(c.totalCost || 0);
-    const selling   = Number(c.selling || 0);
+    const totalCost = Number(c.totalCost ?? c.cost ?? 0);
+    const selling   = Number(c.selling ?? c.totalSelling ?? 0);
 
-    const costPerBag = Number(c.costPerBag || 0);
-    const bagSelling = Number(c.bagSelling || 0);
-    const bagPL      = Number(c.bagProfitLoss || 0);
-    const totalPL    = Number(c.profitLoss || 0);
+    // ✅ Use saved costPerBag if available — otherwise calculate
+    const costPerBag = c.costPerBag
+        ? Number(c.costPerBag)
+        : (bags ? (totalCost / bags) : 0);
+
+    // ✅ Use saved bagSellingPrice if available — otherwise calculate
+    const bagSelling = c.bagSellingPrice
+        ? Number(c.bagSellingPrice)
+        : (bags ? (selling / bags) : 0);
+
+    // ✅ Use saved bagProfitLoss if available — otherwise calculate
+    const bagPL = c.bagProfitLoss !== undefined
+        ? Number(c.bagProfitLoss)
+        : (bagSelling - costPerBag);
+
+    // ✅ Always match table overall profit/loss
+    const totalPL = selling - totalCost;
 
     const win = window.open("", "_blank");
 
@@ -229,17 +243,15 @@ function createPdf(index) {
                 <tr><th>Item</th><td>${c.item || ""}</td></tr>
                 <tr><th>No. of Bags</th><td>${bags}</td></tr>
                 <tr><th>Total Weight</th><td>${totalWeight} KG</td></tr>
-
                 <tr><th>Total Cost</th><td>AED ${totalCost}</td></tr>
                 <tr><th>Total Selling</th><td>AED ${selling}</td></tr>
-
-                <tr><th>Cost / Bag</th><td>AED ${costPerBag}</td></tr>
-                <tr><th>Bag Selling Price</th><td>AED ${bagSelling}</td></tr>
+                <tr><th>Cost / Bag</th><td>AED ${costPerBag.toFixed(2)}</td></tr>
+                <tr><th>Bag Selling Price</th><td>AED ${bagSelling.toFixed(2)}</td></tr>
 
                 <tr>
                     <th>Bag Profit / Loss</th>
                     <td class="${bagPL >= 0 ? "profit" : "loss"}">
-                        ${bagPL >= 0 ? "+" : "-"} AED ${Math.abs(bagPL)}
+                        ${bagPL >= 0 ? "+" : "-"} AED ${Math.abs(bagPL).toFixed(2)}
                     </td>
                 </tr>
 
