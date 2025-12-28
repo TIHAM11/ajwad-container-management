@@ -185,6 +185,83 @@ function loadPage() {
 }
 
 loadPage();
+
+/* ---------- CREATE PDF ---------- */
+function createPdf(index) {
+
+    const containers = getContainers();
+    const c = containers[index];
+
+    // Read saved values (NO recalculation)
+    const bags = Number(c.noOfBags || 0);
+    const totalWeight = Number(c.totalWeight || 0);
+
+    const totalCost = Number(c.totalCost || 0);
+    const selling   = Number(c.selling || 0);
+
+    const costPerBag = Number(c.costPerBag || 0);
+    const bagSelling = Number(c.bagSelling || 0);
+    const bagPL      = Number(c.bagProfitLoss || 0);
+    const totalPL    = Number(c.profitLoss || 0);
+
+    const win = window.open("", "_blank");
+
+    win.document.write(`
+        <html>
+        <head>
+            <title>Container Report - ${c.containerNo}</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h2 { margin-bottom: 5px; }
+                table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+                td,th { border:1px solid #444; padding:8px; }
+                .profit { color: green; font-weight:bold; }
+                .loss { color: red; font-weight:bold; }
+            </style>
+        </head>
+
+        <body>
+
+            <h2>Container Report</h2>
+            <p><b>Date:</b> ${c.date || ""}</p>
+
+            <table>
+                <tr><th>Container No</th><td>${c.containerNo || ""}</td></tr>
+                <tr><th>Item</th><td>${c.item || ""}</td></tr>
+                <tr><th>No. of Bags</th><td>${bags}</td></tr>
+                <tr><th>Total Weight</th><td>${totalWeight} KG</td></tr>
+
+                <tr><th>Total Cost</th><td>AED ${totalCost}</td></tr>
+                <tr><th>Total Selling</th><td>AED ${selling}</td></tr>
+
+                <tr><th>Cost / Bag</th><td>AED ${costPerBag}</td></tr>
+                <tr><th>Bag Selling Price</th><td>AED ${bagSelling}</td></tr>
+
+                <tr>
+                    <th>Bag Profit / Loss</th>
+                    <td class="${bagPL >= 0 ? "profit" : "loss"}">
+                        ${bagPL >= 0 ? "+" : "-"} AED ${Math.abs(bagPL)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Total Profit / Loss</th>
+                    <td class="${totalPL >= 0 ? "profit" : "loss"}">
+                        ${totalPL >= 0 ? "+" : "-"} AED ${Math.abs(totalPL)}
+                    </td>
+                </tr>
+            </table>
+
+            <script>
+                window.print();
+            <\/script>
+
+        </body>
+        </html>
+    `);
+
+    win.document.close();
+}
 </script>
 
 <!-- Delete confirmation popup -->
