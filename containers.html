@@ -186,7 +186,7 @@ function loadPage() {
 
 loadPage();
 
-/* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
+/* ---------- CREATE PDF (PROFESSIONAL BILL FORMAT) ---------- */
 function createPDF(index) {
 
     const containers = getContainers();
@@ -197,143 +197,205 @@ function createPDF(index) {
         return;
     }
 
-    // Standardize overall profit/loss field
-    let overallProfitLoss =
+    const profitLoss =
         c.overallProfitLoss ||
-        c.overallProfit ||
         c.totalProfitLoss ||
         c.profitLoss ||
-        c.totalProfit ||
-        0;
-
-    // Convert numeric values into AED format if needed
-    if (typeof overallProfitLoss === "number") {
-        overallProfitLoss = `AED ${overallProfitLoss}`;
-    }
-
-    // Decide profit / loss color
-    const profitClass =
-        overallProfitLoss.toString().includes("-")
-        ? "loss"
-        : "profit";
+        c.profitloss ||
+        "—";
 
     const reportWindow = window.open("", "_blank");
 
     reportWindow.document.open();
     reportWindow.document.write(`
-        <html>
-        <head>
-            <title>Container Report</title>
+    <html>
+    <head>
+        <title>Container Bill</title>
 
-            <style>
+        <style>
 
-                body {
-                    font-family: Arial, Helvetica, sans-serif;
-                    padding: 30px;
-                    background: #f5f7fb;
-                }
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                background: #eef2f8;
+                padding: 25px;
+            }
 
-                .report-box {
-                    max-width: 900px;
-                    margin: auto;
-                    background: #ffffff;
-                    border-radius: 10px;
-                    padding: 25px 30px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-                }
+            .bill-box {
+                max-width: 900px;
+                margin: auto;
+                background: #fff;
+                border-radius: 10px;
+                padding: 25px 30px;
+                box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+            }
 
-                .header {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
+            .bill-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 25px;
+            }
 
-                .title {
-                    font-size: 22px;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
+            .company-name {
+                font-size: 22px;
+                font-weight: bold;
+                color: #0a2a66;
+            }
 
-                .subtitle {
-                    font-size: 13px;
-                    color: #666;
-                }
+            .company-sub {
+                font-size: 13px;
+                color: #555;
+            }
 
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    font-size: 14px;
-                }
+            .bill-info {
+                text-align: right;
+                font-size: 13px;
+                color: #444;
+            }
 
-                td {
-                    padding: 10px 8px;
-                    border-bottom: 1px solid #e6e6e6;
-                }
+            .bill-title {
+                text-align: center;
+                font-size: 18px;
+                font-weight: bold;
+                margin: 10px 0 15px 0;
+            }
 
-                td:first-child {
-                    font-weight: bold;
-                    width: 35%;
-                    color: #333;
-                }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+                margin-top: 8px;
+            }
 
-                td:last-child {
-                    text-align: right;
-                    color: #222;
-                }
+            th, td {
+                padding: 10px;
+                border: 1px solid #ddd;
+            }
 
-                .profit {
-                    font-weight: bold;
-                    color: green;
-                }
+            th {
+                background: #0a2a66;
+                color: #fff;
+                text-align: left;
+            }
 
-                .loss {
-                    font-weight: bold;
-                    color: red;
-                }
+            .summary-box {
+                margin-top: 18px;
+                padding: 12px;
+                border-radius: 8px;
+                background: #f3f6ff;
+                border: 1px solid #c9d6ff;
+            }
 
-            </style>
-        </head>
+            .label {
+                font-weight: bold;
+                color: #0a2a66;
+            }
 
-        <body>
+            .profit { color: green; font-weight: bold; }
+            .loss   { color: red; font-weight: bold; }
 
-            <div class="report-box">
+            .footer {
+                margin-top: 30px;
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+            }
 
-                <div class="header">
-                    <div class="title">Container Report</div>
-                    <div class="subtitle">Generated from Ajwad Container Management</div>
+            .sign-box {
+                text-align: center;
+                margin-top: 35px;
+            }
+
+            .sign-line {
+                margin-top: 35px;
+                border-top: 1px solid #000;
+                width: 200px;
+                margin-left: auto;
+                margin-right: auto;
+                padding-top: 5px;
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <div class="bill-box">
+
+            <div class="bill-header">
+
+                <div>
+                    <div class="company-name">AJWAD CONTAINER MANAGEMENT</div>
+                    <div class="company-sub">Wholesale Trading · Stock & Container Billing</div>
                 </div>
 
-                <table>
-
-                    <tr><td>Container No</td><td>${c.containerNo}</td></tr>
-                    <tr><td>Item</td><td>${c.item}</td></tr>
-                    <tr><td>Date</td><td>${c.date}</td></tr>
-
-                    <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
-                    <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
-                    <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
-
-                    <tr><td>Total Cost</td><td>${c.totalCost}</td></tr>
-                    <tr><td>Selling</td><td>${c.selling}</td></tr>
-
-                    <tr><td>Cost / Bag</td><td>${c.costPerBag}</td></tr>
-                    <tr><td>Bag Selling Price</td><td>${c.bagSelling}</td></tr>
-
-                    <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss}</td></tr>
-
-                    <tr>
-                        <td>Overall Profit / Loss</td>
-                        <td class="${profitClass}">
-                            ${overallProfitLoss}
-                        </td>
-                    </tr>
-
-                </table>
+                <div class="bill-info">
+                    <div><b>Bill No:</b> ${c.containerNo}</div>
+                    <div><b>Date:</b> ${c.date}</div>
+                </div>
 
             </div>
 
-        </body>
-        </html>
+            <div class="bill-title">CONTAINER BILL / INVOICE</div>
+
+            <table>
+
+                <tr>
+                    <th>Item</th>
+                    <th>No. of Bags</th>
+                    <th>Weight / Bag</th>
+                    <th>Total Weight</th>
+                </tr>
+
+                <tr>
+                    <td>${c.item}</td>
+                    <td>${c.bags}</td>
+                    <td>${c.weightPerBag} KG</td>
+                    <td>${c.totalWeight} KG</td>
+                </tr>
+
+            </table>
+
+
+            <table style="margin-top:10px">
+
+                <tr>
+                    <th>Total Cost</th>
+                    <th>Total Selling</th>
+                    <th>Bag Cost</th>
+                    <th>Bag Selling</th>
+                </tr>
+
+                <tr>
+                    <td>AED ${c.totalCost}</td>
+                    <td>AED ${c.selling}</td>
+                    <td>AED ${c.costPerBag}</td>
+                    <td>AED ${c.bagSelling}</td>
+                </tr>
+
+            </table>
+
+
+            <div class="summary-box">
+
+                <div class="label">Overall Profit / Loss</div>
+
+                <div class="${profitLoss.includes('-') ? 'loss' : 'profit'}"
+                     style="font-size:16px; margin-top:4px;">
+
+                    ${profitLoss}
+                </div>
+
+            </div>
+
+
+            <div class="sign-box">
+                <div class="sign-line">Authorized Signature</div>
+            </div>
+
+        </div>
+
+    </body>
+    </html>
     `);
 
     reportWindow.document.close();
