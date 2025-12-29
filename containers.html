@@ -186,220 +186,93 @@ function loadPage() {
 
 loadPage();
 
-/* ---------- CREATE PDF (PROFESSIONAL BILL FORMAT) ---------- */
-function createPDF(index) {
+function createPDF() {
 
-    const containers = getContainers();
-    const c = containers[index];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-    if (!c) {
-        alert("Container data not found");
-        return;
+    let title = "AJWAD CONTAINER MANAGEMENT - BILL REPORT";
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(title, 14, 18);
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Generated Bill Summary", 14, 26);
+
+    // Table Headers (Same as Containers Page)
+    const headers = [
+        "SL",
+        "Container No",
+        "Customer",
+        "In Date",
+        "Out Date",
+        "Rent / Day",
+        "Total Days",
+        "Total Rent",
+        "Advance",
+        "Balance"
+    ];
+
+    // Get data directly from table (no recalculation)
+    const table = document.getElementById("containerTable");
+    const rows = [];
+
+    for (let i = 1; i < table.rows.length; i++) {
+
+        let cells = table.rows[i].cells;
+
+        rows.push([
+            cells[0].innerText.trim(),
+            cells[1].innerText.trim(),
+            cells[2].innerText.trim(),
+            cells[3].innerText.trim(),
+            cells[4].innerText.trim(),
+            cells[5].innerText.trim(),
+            cells[6].innerText.trim(),
+            cells[7].innerText.trim(),
+            cells[8].innerText.trim(),
+            cells[9].innerText.trim()
+        ]);
     }
 
-    const profitLoss =
-        c.overallProfitLoss ||
-        c.totalProfitLoss ||
-        c.profitLoss ||
-        c.profitloss ||
-        "—";
+    // AutoTable for bill layout
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        startY: 34,
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [0, 0, 0] }
+    });
 
-    const reportWindow = window.open("", "_blank");
+    // === FOOTER BILL SUMMARY ===
+    let finalY = doc.lastAutoTable.finalY + 10;
 
-    reportWindow.document.open();
-    reportWindow.document.write(`
-    <html>
-    <head>
-        <title>Container Bill</title>
+    let totalRent = document.getElementById("totalRent").innerText;
+    let totalAdvance = document.getElementById("totalAdvance").innerText;
+    let totalBalance = document.getElementById("totalBalance").innerText;
 
-        <style>
+    doc.setFont("Helvetica", "bold");
+    doc.text("BILL SUMMARY", 14, finalY);
 
-            body {
-                font-family: Arial, Helvetica, sans-serif;
-                background: #eef2f8;
-                padding: 25px;
-            }
+    doc.setFont("Helvetica", "normal");
+    finalY += 8;
 
-            .bill-box {
-                max-width: 900px;
-                margin: auto;
-                background: #fff;
-                border-radius: 10px;
-                padding: 25px 30px;
-                box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-            }
+    doc.text(`Total Rent: ₹ ${totalRent}`, 14, finalY);
+    finalY += 6;
 
-            .bill-header {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 25px;
-            }
+    doc.text(`Total Advance: ₹ ${totalAdvance}`, 14, finalY);
+    finalY += 6;
 
-            .company-name {
-                font-size: 22px;
-                font-weight: bold;
-                color: #0a2a66;
-            }
+    doc.text(`Overall Balance: ₹ ${totalBalance}`, 14, finalY);
 
-            .company-sub {
-                font-size: 13px;
-                color: #555;
-            }
+    // Footer
+    doc.setFontSize(9);
+    doc.text("This is a system generated bill — no signature required", 14, 290);
 
-            .bill-info {
-                text-align: right;
-                font-size: 13px;
-                color: #444;
-            }
-
-            .bill-title {
-                text-align: center;
-                font-size: 18px;
-                font-weight: bold;
-                margin: 10px 0 15px 0;
-            }
-
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 14px;
-                margin-top: 8px;
-            }
-
-            th, td {
-                padding: 10px;
-                border: 1px solid #ddd;
-            }
-
-            th {
-                background: #0a2a66;
-                color: #fff;
-                text-align: left;
-            }
-
-            .summary-box {
-                margin-top: 18px;
-                padding: 12px;
-                border-radius: 8px;
-                background: #f3f6ff;
-                border: 1px solid #c9d6ff;
-            }
-
-            .label {
-                font-weight: bold;
-                color: #0a2a66;
-            }
-
-            .profit { color: green; font-weight: bold; }
-            .loss   { color: red; font-weight: bold; }
-
-            .footer {
-                margin-top: 30px;
-                display: flex;
-                justify-content: space-between;
-                font-size: 13px;
-            }
-
-            .sign-box {
-                text-align: center;
-                margin-top: 35px;
-            }
-
-            .sign-line {
-                margin-top: 35px;
-                border-top: 1px solid #000;
-                width: 200px;
-                margin-left: auto;
-                margin-right: auto;
-                padding-top: 5px;
-            }
-
-        </style>
-    </head>
-
-    <body>
-
-        <div class="bill-box">
-
-            <div class="bill-header">
-
-                <div>
-                    <div class="company-name">AJWAD CONTAINER MANAGEMENT</div>
-                    <div class="company-sub">Wholesale Trading · Stock & Container Billing</div>
-                </div>
-
-                <div class="bill-info">
-                    <div><b>Bill No:</b> ${c.containerNo}</div>
-                    <div><b>Date:</b> ${c.date}</div>
-                </div>
-
-            </div>
-
-            <div class="bill-title">CONTAINER BILL / INVOICE</div>
-
-            <table>
-
-                <tr>
-                    <th>Item</th>
-                    <th>No. of Bags</th>
-                    <th>Weight / Bag</th>
-                    <th>Total Weight</th>
-                </tr>
-
-                <tr>
-                    <td>${c.item}</td>
-                    <td>${c.bags}</td>
-                    <td>${c.weightPerBag} KG</td>
-                    <td>${c.totalWeight} KG</td>
-                </tr>
-
-            </table>
-
-
-            <table style="margin-top:10px">
-
-                <tr>
-                    <th>Total Cost</th>
-                    <th>Total Selling</th>
-                    <th>Bag Cost</th>
-                    <th>Bag Selling</th>
-                </tr>
-
-                <tr>
-                    <td>AED ${c.totalCost}</td>
-                    <td>AED ${c.selling}</td>
-                    <td>AED ${c.costPerBag}</td>
-                    <td>AED ${c.bagSelling}</td>
-                </tr>
-
-            </table>
-
-
-            <div class="summary-box">
-
-                <div class="label">Overall Profit / Loss</div>
-
-                <div class="${profitLoss.includes('-') ? 'loss' : 'profit'}"
-                     style="font-size:16px; margin-top:4px;">
-
-                    ${profitLoss}
-                </div>
-
-            </div>
-
-
-            <div class="sign-box">
-                <div class="sign-line">Authorized Signature</div>
-            </div>
-
-        </div>
-
-    </body>
-    </html>
-    `);
-
-    reportWindow.document.close();
-    reportWindow.onload = () => reportWindow.print();
+    doc.save("Container_Bill_Report.pdf");
 }
 </script>
 
