@@ -186,158 +186,71 @@ function loadPage() {
 
 loadPage();
 
-/* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
-function createPDF(index) {
+function createPDF() {
 
-    const containers = getContainers();
-    const c = containers[index];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-    if (!c) {
-        alert("Container data not found");
-        return;
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("AJWAD CONTAINER BILL REPORT", 14, 18);
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Generated from Ajwad Container Management", 14, 26);
+
+    // Get table rows (same values already displayed)
+    const table = document.getElementById("containerTable");
+    const rows = [];
+
+    for (let i = 1; i < table.rows.length; i++) {
+
+        let c = table.rows[i].cells;
+
+        rows.push([
+            c[0].innerText.trim(), // Container No
+            c[1].innerText.trim(), // Item
+            c[2].innerText.trim(), // Date
+            c[3].innerText.trim(), // Bags
+            c[4].innerText.trim(), // Weight / Bag
+            c[5].innerText.trim(), // Total Weight
+            c[6].innerText.trim(), // Total Cost
+            c[7].innerText.trim(), // Selling
+            c[8].innerText.trim(), // Bag Profit / Loss
+            c[9].innerText.trim()  // Overall Profit / Loss
+        ]);
     }
 
-    // Standardize overall profit/loss field
-    let overallProfitLoss =
-        c.overallProfitLoss ||
-        c.overallProfit ||
-        c.totalProfitLoss ||
-        c.profitLoss ||
-        c.totalProfit ||
-        0;
+    // Column headers (same as page)
+    const headers = [[
+        "Container No",
+        "Item",
+        "Date",
+        "No. of Bags",
+        "Weight / Bag",
+        "Total Weight",
+        "Total Cost",
+        "Selling",
+        "Bag Profit / Loss",
+        "Overall Profit / Loss"
+    ]];
 
-    // Convert numeric values into AED format if needed
-    if (typeof overallProfitLoss === "number") {
-        overallProfitLoss = `AED ${overallProfitLoss}`;
-    }
+    doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 34,
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [20, 30, 60] }
+    });
 
-    // Decide profit / loss color
-    const profitClass =
-        overallProfitLoss.toString().includes("-")
-        ? "loss"
-        : "profit";
+    // Footer note
+    let y = doc.lastAutoTable.finalY + 10;
 
-    const reportWindow = window.open("", "_blank");
+    doc.setFontSize(9);
+    doc.text("Bill generated from Ajwad Container Management • No signature required", 14, y);
 
-    reportWindow.document.open();
-    reportWindow.document.write(`
-        <html>
-        <head>
-            <title>Container Report</title>
-
-            <style>
-
-                body {
-                    font-family: Arial, Helvetica, sans-serif;
-                    padding: 30px;
-                    background: #f5f7fb;
-                }
-
-                .report-box {
-                    max-width: 900px;
-                    margin: auto;
-                    background: #ffffff;
-                    border-radius: 10px;
-                    padding: 25px 30px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-                }
-
-                .header {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-
-                .title {
-                    font-size: 22px;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-
-                .subtitle {
-                    font-size: 13px;
-                    color: #666;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    font-size: 14px;
-                }
-
-                td {
-                    padding: 10px 8px;
-                    border-bottom: 1px solid #e6e6e6;
-                }
-
-                td:first-child {
-                    font-weight: bold;
-                    width: 35%;
-                    color: #333;
-                }
-
-                td:last-child {
-                    text-align: right;
-                    color: #222;
-                }
-
-                .profit {
-                    font-weight: bold;
-                    color: green;
-                }
-
-                .loss {
-                    font-weight: bold;
-                    color: red;
-                }
-
-            </style>
-        </head>
-
-        <body>
-
-            <div class="report-box">
-
-                <div class="header">
-                    <div class="title">Container Report</div>
-                    <div class="subtitle">Generated from Ajwad Container Management</div>
-                </div>
-
-                <table>
-
-                    <tr><td>Container No</td><td>${c.containerNo}</td></tr>
-                    <tr><td>Item</td><td>${c.item}</td></tr>
-                    <tr><td>Date</td><td>${c.date}</td></tr>
-
-                    <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
-                    <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
-                    <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
-
-                    <tr><td>Total Cost</td><td>${c.totalCost}</td></tr>
-                    <tr><td>Selling</td><td>${c.selling}</td></tr>
-
-                    <tr><td>Cost / Bag</td><td>${c.costPerBag}</td></tr>
-                    <tr><td>Bag Selling Price</td><td>${c.bagSelling}</td></tr>
-
-                    <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss}</td></tr>
-
-                    <tr>
-                        <td>Overall Profit / Loss</td>
-                        <td class="${profitClass}">
-                            ${overallProfitLoss}
-                        </td>
-                    </tr>
-
-                </table>
-
-            </div>
-
-        </body>
-        </html>
-    `);
-
-    reportWindow.document.close();
-    reportWindow.onload = () => reportWindow.print();
+    doc.save("Container_Bill_Report.pdf");
 }
 </script>
 
@@ -353,6 +266,9 @@ function createPDF(index) {
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 </body>
 </html>
