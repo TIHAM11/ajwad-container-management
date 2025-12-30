@@ -187,102 +187,116 @@ function loadPage() {
 loadPage();
 
 /* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
-function createPDF(index) {
-
-    const containers = getContainers();
-    const c = containers[index];
-    if (!c) return alert("Container not found");
+function createPDF(containerId) {
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF("p", "mm", "a4");
 
-    /* ===== HEADER BAR ===== */
-    doc.setFillColor(30, 58, 112);   // navy blue bar
+    // ====== GET ROW DATA FROM TABLE (NO RECALCULATION) ======
+    const row = document.querySelector(
+        `tr[data-id="${containerId}"]`
+    ).children;
+
+    const c = {
+        containerNo: row[0].innerText.trim(),
+        item: row[1].innerText.trim(),
+        date: row[2].innerText.trim(),
+        bags: row[3].innerText.trim(),
+        weightPerBag: row[4].innerText.trim(),
+        totalWeight: row[5].innerText.trim(),
+        totalCost: row[6].innerText.trim(),
+        sellingPrice: row[7].innerText.trim(),
+        costPerBag: row[8].innerText.trim(),
+        bagSellingPrice: row[9].innerText.trim(),
+        bagProfitLoss: row[10].innerText.trim(),
+        overallProfitLoss: row[11].innerText.trim()
+    };
+
+    // ===== TOP HEADER BAR =====
+    doc.setFillColor(18, 63, 122); // navy blue
     doc.rect(0, 0, 210, 28, "F");
 
+    // ===== BRAND NAME =====
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
+    doc.text("AJWAD", 12, 17);
 
-    // 🔹 Title Name (Change anytime)
-    doc.text("AJWAD", 14, 18);
+    // ===== SUBTITLE =====
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Container Bill / Invoice", 12, 24);
+
+    // ===== BILL META (RIGHT SIDE) =====
+    const today = new Date().toISOString().split("T")[0];
 
     doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.text("Container Bill / Invoice", 14, 24);
+    doc.text(`Bill Date : ${today}`, 198, 12, { align: "right" });
+    doc.text(`Container No : ${c.containerNo}`, 198, 18, { align: "right" });
 
-    /* ===== BILL META BOX ===== */
+    // ========= CARD BOX =========
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(15, 38, 180, 120, 3, 3);
+
+    // ========= SECTION TITLE =========
     doc.setTextColor(0, 0, 0);
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill Details", 150, 18, { align: "right" });
-
-    doc.setFont("helvetica", "normal");
-    doc.text(`Bill Date : ${c.date}`, 196, 24, { align: "right" });
-    doc.text(`Container No : ${c.containerNo}`, 196, 30, { align: "right" });
-
-    /* ===== SECTION TITLE ===== */
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text("Container Details", 14, 44);
+    doc.text("Container Details", 20, 48);
 
-    /* ===== SECTION BOX ===== */
-    doc.setDrawColor(200, 200, 200);
-    doc.roundedRect(12, 48, 186, 120, 3, 3);
+    // ========= DETAILS TABLE =========
+    const rows = [
+        ["Item", c.item],
+        ["Date", c.date],
+        ["No. of Bags", c.bags],
+        ["Weight Per Bag", c.weightPerBag],
+        ["Total Weight", c.totalWeight],
+        ["Total Cost", c.totalCost],
+        ["Selling Price", c.sellingPrice],
+        ["Cost Per Bag", c.costPerBag],
+        ["Bag Selling Price", c.bagSellingPrice],
+        ["Bag Profit / Loss", c.bagProfitLoss]
+    ];
 
     let y = 60;
 
-    const addRow = (label, value) => {
-        doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
 
-        doc.setFont("helvetica", "bold");
-        doc.text(label, 18, y);
+    rows.forEach(r => {
+        doc.text(r[0], 24, y);
+        doc.text(r[1], 120, y);
+        y += 10;
+    });
 
-        doc.setFont("helvetica", "normal");
-        doc.text(String(value || "—"), 90, y);
-
-        doc.setDrawColor(235, 235, 235);
-        doc.line(18, y + 4, 190, y + 4);
-
-        y += 12;
-    };
-
-    addRow("Item", c.item);
-    addRow("No. of Bags", c.bags);
-    addRow("Weight Per Bag", c.weightPerBag);
-    addRow("Total Weight", c.totalWeight);
-    addRow("Total Cost", c.totalCost);
-    addRow("Selling Price", c.selling);
-    addRow("Cost Per Bag", c.costPerBag);
-    addRow("Bag Selling Price", c.bagSelling);
-    addRow("Bag Profit / Loss", c.bagProfitLoss);
-
-    /* ===== PROFIT / LOSS BADGE ===== */
-    const profitLoss = c.overallProfitLoss || c.totalProfitLoss || c.profitLoss || "—";
-
+    // ===== OVERALL PROFIT BOX =====
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Overall Profit / Loss", 14, y + 10);
+    doc.text("Overall Profit / Loss", 20, 150);
 
-    // Badge style box
-    if (String(profitLoss).includes("-")) {
-        doc.setFillColor(220, 53, 69);   // red
-    } else {
-        doc.setFillColor(25, 135, 84);   // green
-    }
+    doc.setFillColor(0, 140, 60);
+    doc.roundedRect(110, 142, 40, 12, 2, 2, "F");
 
     doc.setTextColor(255, 255, 255);
-    doc.roundedRect(80, y + 2, 35, 10, 2, 2, "F");
-    doc.text(String(profitLoss), 97, y + 9, { align: "center" });
+    doc.text(c.overallProfitLoss, 130, 150, { align: "center" });
 
-    doc.setTextColor(0, 0, 0);
+    // ===== FOOTER =====
+    doc.setTextColor(60, 60, 60);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
 
-    /* ===== FOOTER ===== */
-    doc.setFontSize(10);
-    doc.text("Generated from Ajwad Container Management System", 14, 286);
-    doc.text("This is a system-generated bill — No signature required", 14, 292);
+    doc.text(
+        "Generated from Ajwad Container Management System",
+        15,
+        188
+    );
 
+    doc.text(
+        "This is a system-generated bill — No signature required",
+        15,
+        194
+    );
+
+    // ===== SAVE FILE =====
     doc.save(`Container_Bill_${c.containerNo}.pdf`);
 }
 </script>
