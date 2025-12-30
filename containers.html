@@ -186,51 +186,66 @@ function loadPage() {
 
 loadPage();
 
-/* ---------- CREATE CONTAINER BILL (INVOICE FORMAT) ---------- */
+/* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
 function createPDF(index) {
 
     const containers = getContainers();
     const c = containers[index];
-
-    if (!c) {
-        alert("Container data not found");
-        return;
-    }
+    if (!c) return alert("Container not found");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // -------- HEADER --------
+    /* ===== HEADER BAR ===== */
+    doc.setFillColor(30, 58, 112);   // navy blue bar
+    doc.rect(0, 0, 210, 28, "F");
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
 
-    // 🔹 THIS IS THE NAME YOU CAN CHANGE ANYTIME
-    doc.text("AJWAD", 14, 18);   // <-- CHANGE NAME HERE IF NEEDED
+    // 🔹 Title Name (Change anytime)
+    doc.text("AJWAD", 14, 18);
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("Container Bill / Invoice", 14, 26);
-    doc.text("Generated from Ajwad Container Management", 14, 32);
-
-    // -------- BILL DETAILS BOX --------
     doc.setFontSize(11);
-    doc.text(`Bill Date : ${c.date}`, 150, 26, { align: "right" });
-    doc.text(`Container No : ${c.containerNo}`, 150, 32, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text("Container Bill / Invoice", 14, 24);
 
-    // -------- ITEM DETAILS --------
-    doc.setFontSize(13);
+    /* ===== BILL META BOX ===== */
+    doc.setTextColor(0, 0, 0);
+
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text("Container Details", 14, 45);
+    doc.text("Bill Details", 150, 18, { align: "right" });
 
-    doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
+    doc.text(`Bill Date : ${c.date}`, 196, 24, { align: "right" });
+    doc.text(`Container No : ${c.containerNo}`, 196, 30, { align: "right" });
 
-    let y = 55;
+    /* ===== SECTION TITLE ===== */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Container Details", 14, 44);
+
+    /* ===== SECTION BOX ===== */
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(12, 48, 186, 120, 3, 3);
+
+    let y = 60;
 
     const addRow = (label, value) => {
-        doc.text(label, 14, y);
+        doc.setFontSize(11);
+
+        doc.setFont("helvetica", "bold");
+        doc.text(label, 18, y);
+
+        doc.setFont("helvetica", "normal");
         doc.text(String(value || "—"), 90, y);
-        y += 8;
+
+        doc.setDrawColor(235, 235, 235);
+        doc.line(18, y + 4, 190, y + 4);
+
+        y += 12;
     };
 
     addRow("Item", c.item);
@@ -243,28 +258,30 @@ function createPDF(index) {
     addRow("Bag Selling Price", c.bagSelling);
     addRow("Bag Profit / Loss", c.bagProfitLoss);
 
-    // -------- PROFIT / LOSS HIGHLIGHT --------
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-
+    /* ===== PROFIT / LOSS BADGE ===== */
     const profitLoss = c.overallProfitLoss || c.totalProfitLoss || c.profitLoss || "—";
 
-    doc.text("Overall Profit / Loss", 14, y + 6);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Overall Profit / Loss", 14, y + 10);
 
+    // Badge style box
     if (String(profitLoss).includes("-")) {
-        doc.setTextColor(200, 0, 0); // red
+        doc.setFillColor(220, 53, 69);   // red
     } else {
-        doc.setTextColor(0, 140, 0); // green
+        doc.setFillColor(25, 135, 84);   // green
     }
 
-    doc.text(String(profitLoss), 90, y + 6);
+    doc.setTextColor(255, 255, 255);
+    doc.roundedRect(80, y + 2, 35, 10, 2, 2, "F");
+    doc.text(String(profitLoss), 97, y + 9, { align: "center" });
 
     doc.setTextColor(0, 0, 0);
 
-    // -------- FOOTER --------
+    /* ===== FOOTER ===== */
     doc.setFontSize(10);
-    doc.text("Bill generated from Ajwad Container Management", 14, 285);
-    doc.text("No signature required", 14, 291);
+    doc.text("Generated from Ajwad Container Management System", 14, 286);
+    doc.text("This is a system-generated bill — No signature required", 14, 292);
 
     doc.save(`Container_Bill_${c.containerNo}.pdf`);
 }
