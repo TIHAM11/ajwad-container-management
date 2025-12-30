@@ -122,7 +122,7 @@ function renderTable(list) {
             <td>
                 <button onclick="editContainer(${index})" class="edit-btn">Edit</button>
                 <button onclick="askDelete(${index})" class="delete-btn">Delete</button>
-                <button onclick="createPDF(${index})" class="pdf-btn">Create PDF</button>
+                <button onclick="createPDF(this)">Create PDF</button>
             </td>
         </tr>
         `;
@@ -187,15 +187,12 @@ function loadPage() {
 loadPage();
 
 /* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
-function createPDF(containerId) {
+function createPDF(btn) {
+
+    const row = btn.closest("tr").children;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
-
-    // ====== GET ROW DATA FROM TABLE (NO RECALCULATION) ======
-    const row = document.querySelector(
-        `tr[data-id="${containerId}"]`
-    ).children;
 
     const c = {
         containerNo: row[0].innerText.trim(),
