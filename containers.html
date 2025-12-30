@@ -37,7 +37,7 @@
             style="width: 100%; padding: 10px; margin-bottom: 12px;"
         />
 
-        <table>
+        <table id="containersTable">
             <thead>
                 <tr>
                     <th>Container No</th>
@@ -200,7 +200,7 @@ function createPDF() {
     doc.text("Generated from Ajwad Container Management", 14, 26);
 
     // Get table rows (same values already displayed)
-    const table = document.getElementById("containerTable");
+    const table = document.getElementById("containersTable");
     const rows = [];
 
     for (let i = 1; i < table.rows.length; i++) {
