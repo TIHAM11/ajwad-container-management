@@ -186,71 +186,87 @@ function loadPage() {
 
 loadPage();
 
-function createPDF() {
+/* ---------- CREATE CONTAINER BILL (INVOICE FORMAT) ---------- */
+function createPDF(index) {
+
+    const containers = getContainers();
+    const c = containers[index];
+
+    if (!c) {
+        alert("Container data not found");
+        return;
+    }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("AJWAD CONTAINER BILL REPORT", 14, 18);
+    // -------- HEADER --------
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
 
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Generated from Ajwad Container Management", 14, 26);
+    // 🔹 THIS IS THE NAME YOU CAN CHANGE ANYTIME
+    doc.text("AJWAD", 14, 18);   // <-- CHANGE NAME HERE IF NEEDED
 
-    // Get table rows (same values already displayed)
-    const table = document.getElementById("containersTable");
-    const rows = [];
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Container Bill / Invoice", 14, 26);
+    doc.text("Generated from Ajwad Container Management", 14, 32);
 
-    for (let i = 1; i < table.rows.length; i++) {
+    // -------- BILL DETAILS BOX --------
+    doc.setFontSize(11);
+    doc.text(`Bill Date : ${c.date}`, 150, 26, { align: "right" });
+    doc.text(`Container No : ${c.containerNo}`, 150, 32, { align: "right" });
 
-        let c = table.rows[i].cells;
+    // -------- ITEM DETAILS --------
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Container Details", 14, 45);
 
-        rows.push([
-            c[0].innerText.trim(), // Container No
-            c[1].innerText.trim(), // Item
-            c[2].innerText.trim(), // Date
-            c[3].innerText.trim(), // Bags
-            c[4].innerText.trim(), // Weight / Bag
-            c[5].innerText.trim(), // Total Weight
-            c[6].innerText.trim(), // Total Cost
-            c[7].innerText.trim(), // Selling
-            c[8].innerText.trim(), // Bag Profit / Loss
-            c[9].innerText.trim()  // Overall Profit / Loss
-        ]);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+
+    let y = 55;
+
+    const addRow = (label, value) => {
+        doc.text(label, 14, y);
+        doc.text(String(value || "—"), 90, y);
+        y += 8;
+    };
+
+    addRow("Item", c.item);
+    addRow("No. of Bags", c.bags);
+    addRow("Weight Per Bag", c.weightPerBag);
+    addRow("Total Weight", c.totalWeight);
+    addRow("Total Cost", c.totalCost);
+    addRow("Selling Price", c.selling);
+    addRow("Cost Per Bag", c.costPerBag);
+    addRow("Bag Selling Price", c.bagSelling);
+    addRow("Bag Profit / Loss", c.bagProfitLoss);
+
+    // -------- PROFIT / LOSS HIGHLIGHT --------
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+
+    const profitLoss = c.overallProfitLoss || c.totalProfitLoss || c.profitLoss || "—";
+
+    doc.text("Overall Profit / Loss", 14, y + 6);
+
+    if (String(profitLoss).includes("-")) {
+        doc.setTextColor(200, 0, 0); // red
+    } else {
+        doc.setTextColor(0, 140, 0); // green
     }
 
-    // Column headers (same as page)
-    const headers = [[
-        "Container No",
-        "Item",
-        "Date",
-        "No. of Bags",
-        "Weight / Bag",
-        "Total Weight",
-        "Total Cost",
-        "Selling",
-        "Bag Profit / Loss",
-        "Overall Profit / Loss"
-    ]];
+    doc.text(String(profitLoss), 90, y + 6);
 
-    doc.autoTable({
-        head: headers,
-        body: rows,
-        startY: 34,
-        theme: "grid",
-        styles: { fontSize: 9, cellPadding: 3 },
-        headStyles: { fillColor: [20, 30, 60] }
-    });
+    doc.setTextColor(0, 0, 0);
 
-    // Footer note
-    let y = doc.lastAutoTable.finalY + 10;
+    // -------- FOOTER --------
+    doc.setFontSize(10);
+    doc.text("Bill generated from Ajwad Container Management", 14, 285);
+    doc.text("No signature required", 14, 291);
 
-    doc.setFontSize(9);
-    doc.text("Bill generated from Ajwad Container Management • No signature required", 14, y);
-
-    doc.save("Container_Bill_Report.pdf");
+    doc.save(`Container_Bill_${c.containerNo}.pdf`);
 }
 </script>
 
