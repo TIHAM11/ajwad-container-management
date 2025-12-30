@@ -187,12 +187,15 @@ function loadPage() {
 loadPage();
 
 /* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
-function createPDF(btn) {
-
-    const row = btn.closest("tr").children;
+function createPDF(containerId) {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
+
+    // ====== GET TABLE ROW VALUES (NO RECALCULATION) ======
+    const row = document.querySelector(
+        `tr[data-id="${containerId}"]`
+    ).children;
 
     const c = {
         containerNo: row[0].innerText.trim(),
@@ -209,49 +212,44 @@ function createPDF(btn) {
         overallProfitLoss: row[11].innerText.trim()
     };
 
-    // ===== TOP HEADER BAR =====
-    doc.setFillColor(18, 63, 122); // navy blue
+    // ===== HEADER BAR =====
+    doc.setFillColor(18, 63, 122);
     doc.rect(0, 0, 210, 28, "F");
 
-    // ===== BRAND NAME =====
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
     doc.text("AJWAD", 12, 17);
 
-    // ===== SUBTITLE =====
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.text("Container Bill / Invoice", 12, 24);
 
-    // ===== BILL META (RIGHT SIDE) =====
     const today = new Date().toISOString().split("T")[0];
 
-    doc.setFontSize(11);
     doc.text(`Bill Date : ${today}`, 198, 12, { align: "right" });
     doc.text(`Container No : ${c.containerNo}`, 198, 18, { align: "right" });
 
-    // ========= CARD BOX =========
-    doc.setDrawColor(200, 200, 200);
+    // ===== CARD CONTAINER =====
+    doc.setDrawColor(210, 210, 210);
     doc.roundedRect(15, 38, 180, 120, 3, 3);
 
-    // ========= SECTION TITLE =========
-    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
+    doc.setTextColor(0, 0, 0);
     doc.text("Container Details", 20, 48);
 
-    // ========= DETAILS TABLE =========
+    // ===== DATA ROWS (More spacing to avoid overlap) =====
     const rows = [
         ["Item", c.item],
         ["Date", c.date],
         ["No. of Bags", c.bags],
-        ["Weight Per Bag", c.weightPerBag],
-        ["Total Weight", c.totalWeight],
-        ["Total Cost", c.totalCost],
-        ["Selling Price", c.sellingPrice],
-        ["Cost Per Bag", c.costPerBag],
-        ["Bag Selling Price", c.bagSellingPrice],
+        ["Weight Per Bag", c.weightPerBag + " KG"],
+        ["Total Weight", c.totalWeight + " KG"],
+        ["Total Cost", "AED " + c.totalCost],
+        ["Selling Price", "AED " + c.sellingPrice],
+        ["Cost Per Bag", "AED " + c.costPerBag],
+        ["Bag Selling Price", "AED " + c.bagSellingPrice],
         ["Bag Profit / Loss", c.bagProfitLoss]
     ];
 
@@ -263,21 +261,22 @@ function createPDF(btn) {
     rows.forEach(r => {
         doc.text(r[0], 24, y);
         doc.text(r[1], 120, y);
-        y += 10;
+        y += 9; // ⬅ increased spacing (prevents collapsing)
     });
 
-    // ===== OVERALL PROFIT BOX =====
+    // ===== OVERALL PROFIT (NOW OUTSIDE TABLE) =====
     doc.setFont("helvetica", "bold");
-    doc.text("Overall Profit / Loss", 20, 150);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Overall Profit / Loss", 20, 165);
 
     doc.setFillColor(0, 140, 60);
-    doc.roundedRect(110, 142, 40, 12, 2, 2, "F");
+    doc.roundedRect(110, 157, 40, 14, 3, 3, "F");
 
     doc.setTextColor(255, 255, 255);
-    doc.text(c.overallProfitLoss, 130, 150, { align: "center" });
+    doc.text("+ AED " + c.overallProfitLoss, 130, 166, { align: "center" });
 
     // ===== FOOTER =====
-    doc.setTextColor(60, 60, 60);
+    doc.setTextColor(70, 70, 70);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
 
@@ -293,7 +292,6 @@ function createPDF(btn) {
         194
     );
 
-    // ===== SAVE FILE =====
     doc.save(`Container_Bill_${c.containerNo}.pdf`);
 }
 </script>
