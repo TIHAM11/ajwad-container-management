@@ -187,112 +187,174 @@ function loadPage() {
 loadPage();
 
 /* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
-function createPDF(containerId) {
+function createPDF(index) {
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("p", "mm", "a4");
+    const containers = getContainers();
+    const c = containers[index];
 
-    // ====== GET TABLE ROW VALUES (NO RECALCULATION) ======
-    const row = document.querySelector(
-        `tr[data-id="${containerId}"]`
-    ).children;
+    if (!c) {
+        alert("Container data not found");
+        return;
+    }
 
-    const c = {
-        containerNo: row[0].innerText.trim(),
-        item: row[1].innerText.trim(),
-        date: row[2].innerText.trim(),
-        bags: row[3].innerText.trim(),
-        weightPerBag: row[4].innerText.trim(),
-        totalWeight: row[5].innerText.trim(),
-        totalCost: row[6].innerText.trim(),
-        sellingPrice: row[7].innerText.trim(),
-        costPerBag: row[8].innerText.trim(),
-        bagSellingPrice: row[9].innerText.trim(),
-        bagProfitLoss: row[10].innerText.trim(),
-        overallProfitLoss: row[11].innerText.trim()
-    };
+    // 🔒 USE ONLY SAVED VALUES (NO LOGIC)
+    const today = new Date().toLocaleDateString("en-GB");
 
-    // ===== HEADER BAR =====
-    doc.setFillColor(18, 63, 122);
-    doc.rect(0, 0, 210, 28, "F");
+    const reportWindow = window.open("", "_blank");
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(255, 255, 255);
-    doc.text("AJWAD", 12, 17);
+    reportWindow.document.open();
+    reportWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajwad - Container Bill</title>
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text("Container Bill / Invoice", 12, 24);
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6fb;
+            padding: 30px;
+        }
 
-    const today = new Date().toISOString().split("T")[0];
+        .bill {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
 
-    doc.text(`Bill Date : ${today}`, 198, 12, { align: "right" });
-    doc.text(`Container No : ${c.containerNo}`, 198, 18, { align: "right" });
+        .top {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
 
-    // ===== CARD CONTAINER =====
-    doc.setDrawColor(210, 210, 210);
-    doc.roundedRect(15, 38, 180, 120, 3, 3);
+        .company h2 {
+            margin: 0;
+            color: #1e3a8a;
+        }
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Container Details", 20, 48);
+        .company p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #555;
+        }
 
-    // ===== DATA ROWS (More spacing to avoid overlap) =====
-    const rows = [
-        ["Item", c.item],
-        ["Date", c.date],
-        ["No. of Bags", c.bags],
-        ["Weight Per Bag", c.weightPerBag + " KG"],
-        ["Total Weight", c.totalWeight + " KG"],
-        ["Total Cost", "AED " + c.totalCost],
-        ["Selling Price", "AED " + c.sellingPrice],
-        ["Cost Per Bag", "AED " + c.costPerBag],
-        ["Bag Selling Price", "AED " + c.bagSellingPrice],
-        ["Bag Profit / Loss", c.bagProfitLoss]
-    ];
+        .bill-info {
+            text-align: right;
+            font-size: 14px;
+        }
 
-    let y = 60;
+        .bill-info span {
+            display: block;
+            margin-bottom: 4px;
+        }
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
 
-    rows.forEach(r => {
-        doc.text(r[0], 24, y);
-        doc.text(r[1], 120, y);
-        y += 9; // ⬅ increased spacing (prevents collapsing)
-    });
+        th {
+            background: #1e3a8a;
+            color: #fff;
+            padding: 10px;
+            text-align: left;
+        }
 
-    // ===== OVERALL PROFIT (NOW OUTSIDE TABLE) =====
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(0, 0, 0);
-    doc.text("Overall Profit / Loss", 20, 165);
+        td {
+            padding: 9px;
+            border-bottom: 1px solid #ddd;
+        }
 
-    doc.setFillColor(0, 140, 60);
-    doc.roundedRect(110, 157, 40, 14, 3, 3, "F");
+        td:last-child {
+            text-align: right;
+        }
 
-    doc.setTextColor(255, 255, 255);
-    doc.text("+ AED " + c.overallProfitLoss, 130, 166, { align: "center" });
+        .profit {
+            color: green;
+            font-weight: bold;
+        }
 
-    // ===== FOOTER =====
-    doc.setTextColor(70, 70, 70);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+        .loss {
+            color: red;
+            font-weight: bold;
+        }
 
-    doc.text(
-        "Generated from Ajwad Container Management System",
-        15,
-        188
-    );
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
 
-    doc.text(
-        "This is a system-generated bill — No signature required",
-        15,
-        194
-    );
+<body>
 
-    doc.save(`Container_Bill_${c.containerNo}.pdf`);
+<div class="bill">
+
+    <div class="top">
+        <div class="company">
+            <h2>Ajwad</h2>
+            <p>Container Management System</p>
+        </div>
+
+        <div class="bill-info">
+            <span><b>Bill Date:</b> ${today}</span>
+            <span><b>Container No:</b> ${c.containerNo}</span>
+        </div>
+    </div>
+
+    <table>
+        <tr><th>Description</th><th>Value</th></tr>
+
+        <tr><td>Item</td><td>${c.item}</td></tr>
+        <tr><td>Date</td><td>${c.date}</td></tr>
+
+        <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
+        <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
+        <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
+
+        <tr><td>Total Cost</td><td>AED ${c.totalCost}</td></tr>
+        <tr><td>Selling</td><td>AED ${c.selling}</td></tr>
+
+        <tr><td>Cost / Bag</td><td>AED ${c.costPerBag}</td></tr>
+        <tr><td>Bag Selling Price</td><td>AED ${c.bagSelling}</td></tr>
+
+        <tr>
+            <td>Bag Profit / Loss</td>
+            <td class="${String(c.bagProfitLoss).includes('-') ? 'loss' : 'profit'}">
+                ${c.bagProfitLoss}
+            </td>
+        </tr>
+
+        <tr>
+            <td><b>Overall Profit / Loss</b></td>
+            <td class="${String(c.overallProfitLoss).includes('-') ? 'loss' : 'profit'}">
+                <b>${c.overallProfitLoss}</b>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        This is a system-generated bill from Ajwad Container Management.
+    </div>
+
+</div>
+
+</body>
+</html>
+    `);
+
+    reportWindow.document.close();
+    reportWindow.onload = () => reportWindow.print();
 }
 </script>
 
