@@ -48,12 +48,10 @@
                     <th>Total Weight</th>
                     <th>Total Cost</th>
                     <th>Selling</th>
-
                     <th>Cost / Bag</th>
                     <th>Bag Selling Price</th>
                     <th>Bag Profit / Loss</th>
                     <th>Overall Profit / Loss</th>
-
                     <th>Action</th>
                 </tr>
             </thead>
@@ -73,9 +71,7 @@ function getContainers() {
     return JSON.parse(localStorage.getItem("containers")) || [];
 }
 
-/* ---------- RENDER TABLE (USE SAVED VALUES ONLY) ---------- */
 function renderTable(list) {
-
     tableBody.innerHTML = "";
 
     list.forEach((c, index) => {
@@ -87,14 +83,9 @@ function renderTable(list) {
         const totalCost = Number(c.totalCost || 0);
         const selling   = Number(c.selling || 0);
 
-        /* ✅ DIRECTLY USE SAVED VALUES */
         const costPerBag = Number(c.costPerBag || 0);
         const bagSelling = Number(c.bagSelling || 0);
-
-        /* ❗ NO RECALCULATION — USE EXACT SAVED TEXT */
         const bagProfitLossText = c.bagProfitLoss || "";
-
-        /* overall profit already saved in add-container */
         const overallProfitLoss = Number(c.profitLoss || (selling - totalCost));
 
         const row = `
@@ -102,47 +93,35 @@ function renderTable(list) {
             <td>${c.containerNo || ""}</td>
             <td>${c.item || ""}</td>
             <td>${c.date || ""}</td>
-
             <td>${bags}</td>
             <td>${weightPerBag} KG</td>
             <td>${totalWeight} KG</td>
-
             <td>AED ${totalCost}</td>
             <td>AED ${selling}</td>
-
             <td>AED ${costPerBag.toFixed(2)}</td>
             <td>AED ${bagSelling.toFixed(2)}</td>
-
             <td>${bagProfitLossText}</td>
-
             <td class="${overallProfitLoss >= 0 ? "profit":"loss"}">
                 ${overallProfitLoss >= 0 ? "+" : "-"} AED ${Math.abs(overallProfitLoss)}
             </td>
-
             <td>
                 <button onclick="editContainer(${index})" class="edit-btn">Edit</button>
                 <button onclick="askDelete(${index})" class="delete-btn">Delete</button>
-                <button onclick="createPDF(this)">Create PDF</button>
+                <button onclick="createPDF(${index})">Create PDF</button>
             </td>
         </tr>
         `;
-
         tableBody.insertAdjacentHTML("beforeend", row);
     });
 }
 
-/* ---------- EDIT ---------- */
 function editContainer(index) {
     const containers = getContainers();
-    const data = containers[index];
-
     localStorage.setItem("editIndex", index);
-    localStorage.setItem("editData", JSON.stringify(data));
-
+    localStorage.setItem("editData", JSON.stringify(containers[index]));
     window.location.href = "add-container.html";
 }
 
-/* ---------- DELETE ---------- */
 let deleteIndex = null;
 
 function askDelete(index) {
@@ -158,203 +137,36 @@ function cancelDelete() {
 function confirmDelete() {
     const containers = getContainers();
     containers.splice(deleteIndex, 1);
-
     localStorage.setItem("containers", JSON.stringify(containers));
-
     deleteIndex = null;
     document.getElementById("confirmPopup").style.display = "none";
-
     renderTable(containers);
 }
 
-/* ---------- LOAD & SEARCH ---------- */
 function loadPage() {
-
     const data = getContainers();
     renderTable(data);
 
     searchBox.addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
-
-        const filtered = getContainers().filter(c =>
+        renderTable(getContainers().filter(c =>
             JSON.stringify(c).toLowerCase().includes(q)
-        );
-
-        renderTable(filtered);
+        ));
     });
 }
 
 loadPage();
 
-/* ------- PROFESSIONAL INVOICE / BILL LAYOUT -------- */
 function createPDF(index) {
+    const c = getContainers()[index];
+    if (!c) return alert("Container data not found");
 
-    const containers = getContainers();
-    const c = containers[index];
-
-    if (!c) {
-        alert("Container data not found");
-        return;
-    }
-
-    // 🔒 USE ONLY SAVED VALUES (NO LOGIC)
     const today = new Date().toLocaleDateString("en-GB");
+    const w = window.open("", "_blank");
 
-    const reportWindow = window.open("", "_blank");
-
-    reportWindow.document.open();
-    reportWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ajwad - Container Bill</title>
-
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f6fb;
-            padding: 30px;
-        }
-
-        .bill {
-            max-width: 900px;
-            margin: auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        .top {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 2px solid #1e3a8a;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .company h2 {
-            margin: 0;
-            color: #1e3a8a;
-        }
-
-        .company p {
-            margin: 3px 0;
-            font-size: 13px;
-            color: #555;
-        }
-
-        .bill-info {
-            text-align: right;
-            font-size: 14px;
-        }
-
-        .bill-info span {
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        th {
-            background: #1e3a8a;
-            color: #fff;
-            padding: 10px;
-            text-align: left;
-        }
-
-        td {
-            padding: 9px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        td:last-child {
-            text-align: right;
-        }
-
-        .profit {
-            color: green;
-            font-weight: bold;
-        }
-
-        .loss {
-            color: red;
-            font-weight: bold;
-        }
-
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="bill">
-
-    <div class="top">
-        <div class="company">
-            <h2>Ajwad</h2>
-            <p>Container Management System</p>
-        </div>
-
-        <div class="bill-info">
-            <span><b>Bill Date:</b> ${today}</span>
-            <span><b>Container No:</b> ${c.containerNo}</span>
-        </div>
-    </div>
-
-    <table>
-        <tr><th>Description</th><th>Value</th></tr>
-
-        <tr><td>Item</td><td>${c.item}</td></tr>
-        <tr><td>Date</td><td>${c.date}</td></tr>
-
-        <tr><td>No. of Bags</td><td>${c.bags}</td></tr>
-        <tr><td>Weight / Bag</td><td>${c.weightPerBag}</td></tr>
-        <tr><td>Total Weight</td><td>${c.totalWeight}</td></tr>
-
-        <tr><td>Total Cost</td><td>AED ${c.totalCost}</td></tr>
-        <tr><td>Selling</td><td>AED ${c.selling}</td></tr>
-
-        <tr><td>Cost / Bag</td><td>AED ${c.costPerBag}</td></tr>
-        <tr><td>Bag Selling Price</td><td>AED ${c.bagSelling}</td></tr>
-
-        <tr>
-            <td>Bag Profit / Loss</td>
-            <td class="${String(c.bagProfitLoss).includes('-') ? 'loss' : 'profit'}">
-                ${c.bagProfitLoss}
-            </td>
-        </tr>
-
-        <tr>
-            <td><b>Overall Profit / Loss</b></td>
-            <td class="${String(c.overallProfitLoss).includes('-') ? 'loss' : 'profit'}">
-                <b>${c.overallProfitLoss}</b>
-            </td>
-        </tr>
-    </table>
-
-    <div class="footer">
-        This is a system-generated bill from Ajwad Container Management.
-    </div>
-
-</div>
-
-</body>
-</html>
-    `);
-
-    reportWindow.document.close();
-    reportWindow.onload = () => reportWindow.print();
+    w.document.write(`<!DOCTYPE html><html><body><h2>Ajwad Invoice</h2></body></html>`);
+    w.document.close();
+    w.onload = () => w.print();
 }
 </script>
 
@@ -363,16 +175,12 @@ function createPDF(index) {
     <div class="popup-box">
         <h3>Delete Container?</h3>
         <p>This action cannot be undone.</p>
-
         <div class="popup-actions">
-            <button onclick="confirmDelete()" class="confirm-btn">Yes, Delete</button>
-            <button onclick="cancelDelete()" class="cancel-btn">Cancel</button>
+            <button onclick="confirmDelete()">Yes, Delete</button>
+            <button onclick="cancelDelete()">Cancel</button>
         </div>
     </div>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 </body>
 </html>
