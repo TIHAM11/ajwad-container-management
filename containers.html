@@ -107,7 +107,7 @@ function renderTable(list) {
             <td>
                 <button onclick="editContainer(${index})" class="edit-btn">Edit</button>
                 <button onclick="askDelete(${index})" class="delete-btn">Delete</button>
-                <button onclick="createPDF(${index})">Create PDF</button>
+                <button onclick="createPDF('${c.containerNo}')">Create PDF</button>
             </td>
         </tr>
         `;
@@ -157,16 +157,46 @@ function loadPage() {
 
 loadPage();
 
-function createPDF(index) {
-    const c = getContainers()[index];
-    if (!c) return alert("Container data not found");
+function createPDF(containerNo) {
+
+    const containers = getContainers();
+
+    const c = containers.find(
+        item => item.containerNo === containerNo
+    );
+
+    if (!c) {
+        alert("Container data not found");
+        return;
+    }
 
     const today = new Date().toLocaleDateString("en-GB");
-    const w = window.open("", "_blank");
 
-    w.document.write(`<!DOCTYPE html><html><body><h2>Ajwad Invoice</h2></body></html>`);
-    w.document.close();
-    w.onload = () => w.print();
+    const reportWindow = window.open("", "_blank");
+
+    reportWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Ajwad - Container Bill</title>
+            <style>
+                body { font-family: Arial; padding: 30px; }
+            </style>
+        </head>
+        <body>
+            <h2>Ajwad Container Bill</h2>
+            <p><b>Date:</b> ${today}</p>
+            <p><b>Container:</b> ${c.containerNo}</p>
+            <p><b>Item:</b> ${c.item}</p>
+            <p><b>Total Cost:</b> AED ${c.totalCost}</p>
+            <p><b>Selling:</b> AED ${c.selling}</p>
+            <p><b>Profit/Loss:</b> AED ${c.profitLoss}</p>
+        </body>
+        </html>
+    `);
+
+    reportWindow.document.close();
+    reportWindow.print();
 }
 </script>
 
