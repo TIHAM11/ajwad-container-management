@@ -157,46 +157,111 @@ function loadPage() {
 
 loadPage();
 
-function createPDF(containerNo) {
-
-    const containers = getContainers();
-
-    const c = containers.find(
-        item => item.containerNo === containerNo
-    );
+/* ---------- CREATE PDF (USE SAVED VALUES) ---------- */
+function createPDF(index) {
+    const containers = getContainers() || []; // ensure we always have an array
+    const c = containers[index];
 
     if (!c) {
-        alert("Container data not found");
+        alert("Container data not found. Please check the index or saved containers.");
         return;
     }
 
-    const today = new Date().toLocaleDateString("en-GB");
+    // Standardize overall profit/loss field
+    let overallProfitLoss =
+        c.overallProfitLoss ??
+        c.overallProfit ??
+        c.totalProfitLoss ??
+        c.profitLoss ??
+        c.totalProfit ??
+        0;
+
+    // Convert numeric values into AED format if needed
+    if (typeof overallProfitLoss === "number") {
+        overallProfitLoss = `AED ${overallProfitLoss}`;
+    }
+
+    // Decide profit / loss color
+    const profitClass =
+        overallProfitLoss.toString().includes("-")
+        ? "loss"
+        : "profit";
 
     const reportWindow = window.open("", "_blank");
 
+    if (!reportWindow) {
+        alert("Unable to open PDF window. Please allow pop-ups for this site.");
+        return;
+    }
+
+    reportWindow.document.open();
     reportWindow.document.write(`
-        <!DOCTYPE html>
         <html>
         <head>
-            <title>Ajwad - Container Bill</title>
+            <title>Container Report</title>
             <style>
-                body { font-family: Arial; padding: 30px; }
+                body {
+                    font-family: Arial, Helvetica, sans-serif;
+                    padding: 30px;
+                    background: #f5f7fb;
+                }
+                .report-box {
+                    max-width: 900px;
+                    margin: auto;
+                    background: #ffffff;
+                    border-radius: 10px;
+                    padding: 25px 30px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+                }
+                .header { text-align: center; margin-bottom: 20px; }
+                .title { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+                .subtitle { font-size: 13px; color: #666; }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                    font-size: 14px;
+                }
+                td {
+                    padding: 10px 8px;
+                    border-bottom: 1px solid #e6e6e6;
+                }
+                td:first-child { font-weight: bold; width: 35%; color: #333; }
+                td:last-child { text-align: right; color: #222; }
+                .profit { font-weight: bold; color: green; }
+                .loss { font-weight: bold; color: red; }
             </style>
         </head>
         <body>
-            <h2>Ajwad Container Bill</h2>
-            <p><b>Date:</b> ${today}</p>
-            <p><b>Container:</b> ${c.containerNo}</p>
-            <p><b>Item:</b> ${c.item}</p>
-            <p><b>Total Cost:</b> AED ${c.totalCost}</p>
-            <p><b>Selling:</b> AED ${c.selling}</p>
-            <p><b>Profit/Loss:</b> AED ${c.profitLoss}</p>
+            <div class="report-box">
+                <div class="header">
+                    <div class="title">Container Report</div>
+                    <div class="subtitle">Generated from Ajwad Container Management</div>
+                </div>
+                <table>
+                    <tr><td>Container No</td><td>${c.containerNo || "N/A"}</td></tr>
+                    <tr><td>Item</td><td>${c.item || "N/A"}</td></tr>
+                    <tr><td>Date</td><td>${c.date || "N/A"}</td></tr>
+                    <tr><td>No. of Bags</td><td>${c.bags || 0}</td></tr>
+                    <tr><td>Weight / Bag</td><td>${c.weightPerBag || 0}</td></tr>
+                    <tr><td>Total Weight</td><td>${c.totalWeight || 0}</td></tr>
+                    <tr><td>Total Cost</td><td>${c.totalCost || 0}</td></tr>
+                    <tr><td>Selling</td><td>${c.selling || 0}</td></tr>
+                    <tr><td>Cost / Bag</td><td>${c.costPerBag || 0}</td></tr>
+                    <tr><td>Bag Selling Price</td><td>${c.bagSelling || 0}</td></tr>
+                    <tr><td>Bag Profit / Loss</td><td>${c.bagProfitLoss || 0}</td></tr>
+                    <tr>
+                        <td>Overall Profit / Loss</td>
+                        <td class="${profitClass}">${overallProfitLoss}</td>
+                    </tr>
+                </table>
+            </div>
         </body>
         </html>
     `);
 
     reportWindow.document.close();
-    reportWindow.print();
+    reportWindow.onload = () => reportWindow.print();
 }
 </script>
 
